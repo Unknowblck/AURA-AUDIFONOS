@@ -3,7 +3,7 @@
     "aura_landing": {
       "type": "aura-landing",
       "settings": {
-        "checkout_url": "",
+        "checkout_url": "/products/audifonos",
         "price_now": "$119.900",
         "price_was": "$345.900",
         "price_save": "Ahorras $226.000",
