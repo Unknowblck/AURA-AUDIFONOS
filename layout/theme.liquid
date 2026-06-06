@@ -42,9 +42,11 @@
 
   <body class="page-width-{{ settings.page_width }} card-hover-effect-{{ settings.card_hover_effect }}">
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
+    {%- unless template.name == 'index' -%}
     <div id="header-group">
       {% sections 'header-group' %}
     </div>
+    {%- endunless -%}
 
     <script>
       // Inline header height and menu style calculations to prevent layout shift
@@ -125,9 +127,11 @@
       {{ content_for_layout }}
     </main>
 
+    {%- unless template.name == 'index' -%}
     <footer>
       {% sections 'footer-group' %}
     </footer>
+    {%- endunless -%}
 
     {% render 'search-modal' %}
 

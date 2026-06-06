@@ -1,0 +1,718 @@
+{% comment %}
+  AURA Landing — single-shot Shopify section.
+  Replica el landing del prototipo HTML/CSS/JS. Editable desde el theme editor:
+  precio, stock y URL del botón Comprar.
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+{%- assign buy_url = section.settings.checkout_url | default: '#aura-precio' -%}
+{%- assign price_now = section.settings.price_now | default: '$119.900' -%}
+{%- assign price_was = section.settings.price_was | default: '$345.900' -%}
+{%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
+{%- assign stock_left = section.settings.stock_left | default: '17' -%}
+
+<style>
+  .aura-landing{
+    --aura-bg:#F5F3EE;
+    --aura-ink:#080808;
+    --aura-accent:#FF5A1F;
+    --aura-muted:#8A857C;
+    --aura-cloud:#FAF8F3;
+    --aura-line:rgba(8,8,8,.10);
+    --aura-maxw:1200px;
+    --aura-ease:cubic-bezier(.22,.61,.36,1);
+    background:var(--aura-bg);
+    color:var(--aura-ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-weight:400;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .aura-landing *{box-sizing:border-box;}
+  .aura-landing img,.aura-landing video{display:block;max-width:100%;}
+  .aura-landing a{color:inherit;text-decoration:none;}
+  .aura-landing ::selection{background:var(--aura-accent);color:#fff;}
+  .aura-landing :focus-visible{outline:2px solid var(--aura-accent);outline-offset:3px;border-radius:2px;}
+
+  .aura-landing h1,
+  .aura-landing h2,
+  .aura-landing h3{
+    font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;
+    letter-spacing:.005em;line-height:.92;margin:0;
+  }
+  .aura-landing .eyebrow{
+    font-size:.72rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--aura-accent);display:inline-flex;align-items:center;gap:.6em;
+  }
+  .aura-landing .wrap{max-width:var(--aura-maxw);margin:0 auto;padding:0 22px;}
+  .aura-landing section{position:relative;}
+  .aura-landing .lead{font-size:clamp(1.05rem,1rem + .6vw,1.3rem);color:#2a2722;font-weight:300;line-height:1.6;}
+
+  /* Reveal */
+  .aura-landing .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--aura-ease),transform .9s var(--aura-ease);}
+  .aura-landing .reveal.in{opacity:1;transform:none;}
+  .aura-landing .reveal[data-d="1"]{transition-delay:.08s;}
+  .aura-landing .reveal[data-d="2"]{transition-delay:.16s;}
+  .aura-landing .reveal[data-d="3"]{transition-delay:.24s;}
+  .aura-landing .reveal[data-d="4"]{transition-delay:.32s;}
+  @media (prefers-reduced-motion:reduce){
+    .aura-landing .reveal{opacity:1 !important;transform:none !important;transition:none;}
+  }
+
+  /* Buttons */
+  .aura-landing .btn{
+    --pad:15px 26px;
+    display:inline-flex;align-items:center;gap:.55em;
+    padding:var(--pad);border-radius:100px;font-weight:600;font-size:.95rem;letter-spacing:.01em;
+    cursor:pointer;border:1px solid transparent;
+    transition:transform .35s var(--aura-ease),background .35s var(--aura-ease),color .35s var(--aura-ease),box-shadow .35s var(--aura-ease);
+    white-space:nowrap;text-decoration:none;
+  }
+  .aura-landing .btn .arr{transition:transform .35s var(--aura-ease);}
+  .aura-landing .btn:hover .arr{transform:translateX(4px);}
+  .aura-landing .btn-primary{background:var(--aura-accent);color:#fff;box-shadow:0 12px 30px -12px rgba(255,90,31,.7);}
+  .aura-landing .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 40px -14px rgba(255,90,31,.8);}
+  .aura-landing .btn-ghost{background:transparent;color:var(--aura-ink);border-color:var(--aura-line);}
+  .aura-landing .btn-ghost:hover{background:var(--aura-ink);color:var(--aura-bg);border-color:var(--aura-ink);}
+  .aura-landing .btn-light{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35);backdrop-filter:blur(6px);}
+  .aura-landing .btn-light:hover{background:#fff;color:var(--aura-ink);transform:translateY(-2px);}
+
+  /* Navbar */
+  .aura-landing .nav{
+    position:sticky;top:0;z-index:60;
+    transition:background .4s var(--aura-ease),box-shadow .4s var(--aura-ease),border-color .4s var(--aura-ease);
+    border-bottom:1px solid transparent;background:transparent;
+  }
+  .aura-landing .nav.scrolled{background:rgba(245,243,238,.82);backdrop-filter:blur(14px);border-bottom-color:var(--aura-line);}
+  .aura-landing .nav-in{display:flex;align-items:center;justify-content:space-between;height:68px;}
+  .aura-landing .logo{font-family:'Anton',sans-serif;font-size:1.45rem;letter-spacing:.16em;text-transform:uppercase;color:var(--aura-ink);}
+  .aura-landing .logo .dot{color:var(--aura-accent);}
+  .aura-landing .nav-links{display:none;gap:34px;align-items:center;list-style:none;padding:0;margin:0;}
+  .aura-landing .nav-links a{font-size:.92rem;color:#2a2722;position:relative;padding:4px 0;font-weight:500;}
+  .aura-landing .nav-links a::after{content:"";position:absolute;left:0;bottom:-2px;height:1.5px;width:0;background:var(--aura-accent);transition:width .3s var(--aura-ease);}
+  .aura-landing .nav-links a:hover::after{width:100%;}
+  .aura-landing .nav-right{display:flex;align-items:center;gap:14px;}
+  .aura-landing .nav-cta{display:none;}
+  .aura-landing .burger{display:inline-flex;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;}
+  .aura-landing .burger span{width:22px;height:2px;background:var(--aura-ink);transition:.3s var(--aura-ease);}
+  .aura-landing .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .aura-landing .burger.open span:nth-child(2){opacity:0;}
+  .aura-landing .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+  .aura-landing .mobile-menu{
+    position:fixed;inset:68px 0 auto 0;z-index:55;background:var(--aura-bg);
+    border-bottom:1px solid var(--aura-line);
+    transform:translateY(-110%);transition:transform .45s var(--aura-ease);
+    padding:14px 22px 26px;
+  }
+  .aura-landing .mobile-menu.open{transform:translateY(0);}
+  .aura-landing .mobile-menu a{display:block;font-size:1.5rem;font-family:'Anton',sans-serif;text-transform:uppercase;padding:12px 0;border-bottom:1px solid var(--aura-line);color:var(--aura-ink);}
+  .aura-landing .mobile-menu .btn{margin-top:18px;width:100%;justify-content:center;}
+  @media(min-width:880px){
+    .aura-landing .nav-links{display:flex;}
+    .aura-landing .nav-cta{display:inline-flex;}
+    .aura-landing .burger{display:none;}
+  }
+
+  /* Hero */
+  .aura-landing .hero{
+    min-height:100svh;display:flex;align-items:flex-end;position:relative;overflow:hidden;
+    background:#e9e4da url('{{ 'aura-hero-poster.png' | asset_url }}') center/cover no-repeat;
+  }
+  .aura-landing .hero video,
+  .aura-landing .hero .hero-poster{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
+  }
+  .aura-landing .hero::after{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:
+      linear-gradient(to top,rgba(15,12,8,.62) 0%,rgba(15,12,8,.12) 38%,rgba(15,12,8,0) 60%),
+      linear-gradient(to right,rgba(15,12,8,.34) 0%,rgba(15,12,8,0) 55%);
+  }
+  .aura-landing .hero-in{position:relative;z-index:2;width:100%;padding-bottom:clamp(40px,7vh,80px);padding-top:120px;}
+  .aura-landing .hero h1{
+    color:#fff;font-size:clamp(2.9rem,8.4vw,6.6rem);max-width:14ch;
+    text-shadow:0 2px 40px rgba(0,0,0,.25);
+  }
+  .aura-landing .hero h1 .o{color:var(--aura-accent);}
+  .aura-landing .hero-sub{color:rgba(255,255,255,.9);font-weight:300;font-size:clamp(1rem,1rem + .5vw,1.25rem);max-width:46ch;margin:22px 0 30px;}
+  .aura-landing .hero-price{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:4px 0 16px;}
+  .aura-landing .hero-price .hp-now{font-family:'Anton',sans-serif;color:#fff;font-size:clamp(2rem,1.6rem + 3vw,3.2rem);line-height:.9;text-shadow:0 2px 30px rgba(0,0,0,.3);}
+  .aura-landing .hero-price .hp-was{color:rgba(255,255,255,.72);text-decoration:line-through;font-size:1rem;font-weight:300;text-transform:uppercase;letter-spacing:.04em;}
+  .aura-landing .hero-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+  .aura-landing .hero-urgency{
+    display:inline-flex;align-items:center;gap:10px;margin:0 0 26px;padding:9px 16px;border-radius:100px;
+    background:rgba(255,90,31,.14);border:1px solid rgba(255,90,31,.45);backdrop-filter:blur(6px);
+    color:#fff;font-size:.86rem;font-weight:500;letter-spacing:.01em;
+  }
+  .aura-landing .hero-urgency strong{font-weight:700;color:var(--aura-accent);}
+  .aura-landing .hero-urgency .pulse{width:9px;height:9px;border-radius:50%;background:var(--aura-accent);flex:none;position:relative;}
+  .aura-landing .hero-urgency .pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--aura-accent);animation:aura-pulse 1.8s var(--aura-ease) infinite;}
+  @keyframes aura-pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.aura-landing .hero-urgency .pulse::after{animation:none;}}
+  .aura-landing .social-proof{display:flex;align-items:center;gap:14px;margin-top:30px;color:#fff;flex-wrap:wrap;}
+  .aura-landing .stars{color:var(--aura-accent);letter-spacing:2px;font-size:1rem;}
+  .aura-landing .social-proof .sp-text{font-size:.9rem;color:rgba(255,255,255,.88);}
+  .aura-landing .social-proof .sp-text strong{font-weight:600;color:#fff;}
+  .aura-landing .scroll-cue{
+    position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;
+    color:rgba(255,255,255,.8);font-size:.68rem;letter-spacing:.25em;text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+  }
+  .aura-landing .scroll-cue .bar{width:1px;height:34px;background:linear-gradient(to bottom,rgba(255,255,255,.7),transparent);animation:aura-cue 2.2s var(--aura-ease) infinite;}
+  @keyframes aura-cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  .aura-landing .pad{padding:clamp(74px,11vh,140px) 0;}
+  .aura-landing .section-head{max-width:62ch;}
+  .aura-landing .section-head h2{font-size:clamp(2.1rem,2rem + 3.4vw,4.4rem);margin-top:18px;}
+
+  /* Problema */
+  .aura-landing .problema{background:var(--aura-ink);color:var(--aura-cloud);overflow:hidden;}
+  .aura-landing .problema .eyebrow{color:var(--aura-accent);}
+  .aura-landing .problema .big{
+    font-family:'Anton',sans-serif;text-transform:uppercase;
+    font-size:clamp(1.8rem,1.5rem + 3.6vw,4rem);line-height:1.02;letter-spacing:.005em;
+    max-width:18ch;
+  }
+  .aura-landing .problema .big em{font-style:normal;color:var(--aura-accent);}
+  .aura-landing .problema .pq{display:grid;gap:40px;align-items:end;grid-template-columns:1fr;margin-top:46px;}
+  .aura-landing .problema p{color:rgba(250,248,243,.72);font-weight:300;max-width:42ch;}
+  .aura-landing .problema .stat{font-family:'Anton',sans-serif;font-size:clamp(3rem,2rem + 6vw,6rem);color:#fff;line-height:.9;}
+  .aura-landing .problema .stat span{display:block;font-family:'Inter';font-size:.85rem;font-weight:400;color:var(--aura-muted);text-transform:none;letter-spacing:.02em;margin-top:12px;max-width:24ch;}
+  @media(min-width:820px){.aura-landing .problema .pq{grid-template-columns:1.4fr .9fr;gap:60px;}}
+
+  /* Solución */
+  .aura-landing .sol-grid{display:grid;gap:14px;grid-template-columns:1fr;margin-top:56px;}
+  .aura-landing .sol-card{
+    background:var(--aura-cloud);border:1px solid var(--aura-line);border-radius:20px;padding:34px 30px;
+    transition:transform .5s var(--aura-ease),box-shadow .5s var(--aura-ease);
+  }
+  .aura-landing .sol-card:hover{transform:translateY(-5px);box-shadow:0 26px 50px -30px rgba(8,8,8,.3);}
+  .aura-landing .sol-num{font-family:'Anton',sans-serif;color:var(--aura-accent);font-size:.9rem;letter-spacing:.1em;}
+  .aura-landing .ico{width:52px;height:52px;border-radius:14px;background:#fff;border:1px solid var(--aura-line);display:grid;place-items:center;margin:18px 0 22px;color:var(--aura-accent);}
+  .aura-landing .ico svg{width:26px;height:26px;}
+  .aura-landing .sol-card h3{font-size:1.5rem;text-transform:none;font-family:'Inter';font-weight:600;letter-spacing:-.01em;line-height:1.15;}
+  .aura-landing .sol-card p{color:var(--aura-muted);font-size:.96rem;margin:12px 0 0;font-weight:300;}
+  @media(min-width:760px){.aura-landing .sol-grid{grid-template-columns:repeat(3,1fr);gap:18px;}}
+
+  /* Funciones */
+  .aura-landing .func{background:var(--aura-cloud);}
+  .aura-landing .func-layout{display:grid;gap:34px;grid-template-columns:1fr;align-items:start;margin-top:54px;}
+  .aura-landing .func-visual{position:relative;border-radius:22px;overflow:hidden;background:#e9e4da;aspect-ratio:16/11;border:1px solid var(--aura-line);}
+  .aura-landing .func-visual img{width:100%;height:100%;object-fit:cover;}
+  .aura-landing .func-visual .tag{
+    position:absolute;left:16px;bottom:16px;background:rgba(8,8,8,.72);color:#fff;backdrop-filter:blur(8px);
+    padding:9px 15px;border-radius:100px;font-size:.78rem;letter-spacing:.04em;display:flex;gap:8px;align-items:center;
+  }
+  .aura-landing .func-visual .tag b{color:var(--aura-accent);font-weight:600;}
+  .aura-landing .func-grid{display:grid;gap:0;grid-template-columns:1fr 1fr;border:1px solid var(--aura-line);border-radius:18px;overflow:hidden;background:var(--aura-bg);}
+  .aura-landing .func-item{padding:26px 22px;border-right:1px solid var(--aura-line);border-bottom:1px solid var(--aura-line);transition:background .35s var(--aura-ease);}
+  .aura-landing .func-item:nth-child(2n){border-right:0;}
+  .aura-landing .func-item:nth-last-child(-n+2){border-bottom:0;}
+  .aura-landing .func-item:hover{background:var(--aura-cloud);}
+  .aura-landing .func-item .fi-ico{color:var(--aura-accent);width:30px;height:30px;margin-bottom:16px;}
+  .aura-landing .func-item h3{font-size:1.06rem;text-transform:none;font-family:'Inter';font-weight:600;letter-spacing:-.01em;}
+  .aura-landing .func-item p{color:var(--aura-muted);font-size:.86rem;margin:7px 0 0;font-weight:300;line-height:1.5;}
+  @media(min-width:920px){
+    .aura-landing .func-layout{grid-template-columns:1.02fr .98fr;gap:46px;}
+    .aura-landing .func-visual{position:sticky;top:90px;aspect-ratio:4/5;}
+  }
+
+  /* Ciencia / Trust */
+  .aura-landing .ciencia{background:var(--aura-ink);color:var(--aura-cloud);overflow:hidden;}
+  .aura-landing .ciencia .eyebrow{color:var(--aura-accent);}
+  .aura-landing .ciencia .section-head h2{color:#fff;}
+  .aura-landing .spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(250,248,243,.12);border:1px solid rgba(250,248,243,.12);border-radius:20px;overflow:hidden;margin-top:56px;}
+  .aura-landing .spec{background:var(--aura-ink);padding:34px 26px;}
+  .aura-landing .spec .n{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,2rem + 3.6vw,4.2rem);line-height:.9;color:#fff;}
+  .aura-landing .spec .n .u{color:var(--aura-accent);font-size:.42em;vertical-align:top;margin-left:2px;}
+  .aura-landing .spec .l{color:var(--aura-muted);font-size:.9rem;margin-top:14px;font-weight:300;line-height:1.5;}
+  @media(min-width:820px){.aura-landing .spec-grid{grid-template-columns:repeat(4,1fr);}}
+  .aura-landing .badges{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px;}
+  .aura-landing .badge{display:flex;align-items:center;gap:9px;border:1px solid rgba(250,248,243,.18);border-radius:100px;padding:11px 18px;font-size:.84rem;color:rgba(250,248,243,.85);}
+  .aura-landing .badge svg{width:17px;height:17px;color:var(--aura-accent);flex:none;}
+
+  /* Testimonios */
+  .aura-landing .test-grid{display:grid;gap:16px;grid-template-columns:1fr;margin-top:54px;}
+  .aura-landing .quote{background:var(--aura-cloud);border:1px solid var(--aura-line);border-radius:20px;padding:34px 30px;display:flex;flex-direction:column;}
+  .aura-landing .quote .qmark{font-family:'Anton',sans-serif;color:var(--aura-accent);font-size:3rem;line-height:.5;height:30px;}
+  .aura-landing .quote p{font-size:1.12rem;font-weight:300;line-height:1.5;color:#1f1c18;margin:10px 0 26px;}
+  .aura-landing .quote .stars{color:var(--aura-accent);font-size:.85rem;margin-bottom:14px;letter-spacing:1px;}
+  .aura-landing .who{display:flex;align-items:center;gap:13px;margin-top:auto;}
+  .aura-landing .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#FF5A1F,#ffb38f);display:grid;place-items:center;color:#fff;font-weight:600;font-size:1rem;flex:none;}
+  .aura-landing .who b{font-weight:600;font-size:.95rem;display:block;}
+  .aura-landing .who span{color:var(--aura-muted);font-size:.82rem;}
+  @media(min-width:760px){.aura-landing .test-grid{grid-template-columns:repeat(3,1fr);gap:18px;}}
+
+  /* Pricing */
+  .aura-landing .pricing{background:var(--aura-bg);}
+  .aura-landing .price-card{
+    max-width:560px;margin:46px auto 0;background:var(--aura-ink);color:var(--aura-cloud);
+    border-radius:28px;padding:clamp(34px,5vw,52px);text-align:center;position:relative;overflow:hidden;
+    box-shadow:0 40px 80px -50px rgba(8,8,8,.6);
+  }
+  .aura-landing .price-card::before{content:"";position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:120%;height:80%;background:radial-gradient(ellipse at center,rgba(255,90,31,.28),transparent 70%);pointer-events:none;}
+  .aura-landing .price-card .ribbon{display:inline-flex;align-items:center;gap:8px;background:rgba(255,90,31,.16);color:var(--aura-accent);border:1px solid rgba(255,90,31,.4);padding:8px 16px;border-radius:100px;font-size:.76rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;position:relative;}
+  .aura-landing .price-now{font-family:'Anton',sans-serif;font-size:clamp(3.4rem,2.5rem + 7vw,6rem);line-height:.95;margin:22px 0 6px;color:#fff;position:relative;}
+  .aura-landing .price-was{color:var(--aura-muted);text-decoration:line-through;font-size:1.1rem;position:relative;}
+  .aura-landing .price-was + .save{color:var(--aura-accent);font-weight:600;margin-left:10px;}
+  .aura-landing .price-list{list-style:none;padding:0;margin:30px auto;max-width:330px;text-align:left;display:grid;gap:13px;position:relative;}
+  .aura-landing .price-list li{display:flex;align-items:center;gap:12px;font-size:.96rem;color:rgba(250,248,243,.9);}
+  .aura-landing .price-list svg{width:20px;height:20px;color:var(--aura-accent);flex:none;}
+  .aura-landing .price-card .btn{position:relative;width:100%;max-width:330px;justify-content:center;font-size:1.05rem;padding:18px 26px;}
+  .aura-landing .price-fine{color:var(--aura-muted);font-size:.8rem;margin-top:16px;position:relative;}
+
+  /* Footer */
+  .aura-landing .aura-foot{background:var(--aura-ink);color:var(--aura-cloud);padding:70px 0 34px;}
+  .aura-landing .foot-top{display:grid;gap:40px;grid-template-columns:1fr;}
+  .aura-landing .foot-brand .logo{color:#fff;font-size:2rem;}
+  .aura-landing .foot-brand p{color:var(--aura-muted);max-width:34ch;margin:16px 0 0;font-weight:300;font-size:.95rem;}
+  .aura-landing .foot-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:30px;}
+  .aura-landing .foot-col h4{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--aura-muted);margin:0 0 16px;font-family:'Inter';font-weight:600;}
+  .aura-landing .foot-col a{display:block;color:rgba(250,248,243,.82);padding:6px 0;font-size:.92rem;transition:color .25s;}
+  .aura-landing .foot-col a:hover{color:var(--aura-accent);}
+  .aura-landing .socials{display:flex;gap:10px;margin-top:20px;}
+  .aura-landing .socials a{width:40px;height:40px;border:1px solid rgba(250,248,243,.2);border-radius:50%;display:grid;place-items:center;transition:.3s var(--aura-ease);}
+  .aura-landing .socials a:hover{background:var(--aura-accent);border-color:var(--aura-accent);transform:translateY(-3px);}
+  .aura-landing .socials svg{width:18px;height:18px;}
+  .aura-landing .foot-bottom{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin-top:54px;padding-top:26px;border-top:1px solid rgba(250,248,243,.12);color:var(--aura-muted);font-size:.82rem;}
+  @media(min-width:820px){
+    .aura-landing .foot-top{grid-template-columns:1.4fr 1.6fr;gap:50px;}
+    .aura-landing .foot-cols{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+
+<div class="aura-landing" id="aura-landing">
+
+  <!-- NAVBAR -->
+  <header class="nav" id="aura-nav">
+    <div class="wrap nav-in">
+      <a href="#aura-inicio" class="logo" aria-label="AURA inicio">AURA<span class="dot">.</span></a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="#aura-inicio">Inicio</a>
+        <a href="#aura-funciones">Funciones</a>
+        <a href="#aura-precio">Precio</a>
+        <a href="#aura-opiniones">Opiniones</a>
+        <a href="#aura-ayuda">Ayuda</a>
+      </nav>
+      <div class="nav-right">
+        <a href="{{ buy_url }}" class="btn btn-primary nav-cta">Comprar</a>
+        <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="mobile-menu" id="aura-mobileMenu" aria-hidden="true">
+    <a href="#aura-inicio">Inicio</a>
+    <a href="#aura-funciones">Funciones</a>
+    <a href="#aura-precio">Precio</a>
+    <a href="#aura-opiniones">Opiniones</a>
+    <a href="#aura-ayuda">Ayuda</a>
+    <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="aura-inicio">
+    <img class="hero-poster" src="{{ 'aura-hero-poster.png' | asset_url }}" alt="" aria-hidden="true" id="aura-heroPoster">
+    <video id="aura-heroVideo" autoplay muted playsinline preload="auto"
+           poster="{{ 'aura-hero-poster.png' | asset_url }}" aria-hidden="true">
+      <source src="{{ 'aura-transition.mp4' | asset_url }}" type="video/mp4">
+    </video>
+    <div class="wrap hero-in">
+      <p class="eyebrow reveal in">Audífonos AURA · Edición Pantalla</p>
+      <h1 class="reveal in" data-d="1">Silencia el mundo.<br><span class="o">Vive</span> el sonido.</h1>
+      <p class="hero-sub reveal in" data-d="2">Cancelación de ruido adaptativa, pantalla táctil en el estuche y 20 horas de batería. Diseñados para desaparecer en tu día y dejarte solo con la música.</p>
+      <div class="hero-price reveal in" data-d="3">
+        <span class="hp-now">{{ price_now }}</span>
+        <span class="hp-was">antes {{ price_was }}</span>
+      </div>
+      <div class="hero-urgency reveal in" data-d="3" role="status">
+        <span class="pulse" aria-hidden="true"></span>
+        <span>Últimas unidades — quedan <strong>{{ stock_left }}</strong> a este precio</span>
+      </div>
+      <div class="hero-actions reveal in" data-d="3">
+        <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora <span class="arr">→</span></a>
+        <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
+      </div>
+      <div class="social-proof reveal in" data-d="4">
+        <span class="stars" aria-hidden="true">★★★★★</span>
+        <span class="sp-text"><strong>4.9/5</strong> · <strong>+25.000</strong> vendidos</span>
+      </div>
+    </div>
+    <div class="scroll-cue" aria-hidden="true"><span>Descubre</span><span class="bar"></span></div>
+  </section>
+
+  <!-- PROBLEMA -->
+  <section class="problema pad">
+    <div class="wrap">
+      <p class="eyebrow reveal">El problema</p>
+      <h2 class="big reveal" data-d="1">Los audífonos "normales" se quedan <em>cortos</em>.</h2>
+      <div class="pq">
+        <div>
+          <p class="reveal" data-d="2">Cancelan a medias. Se descargan a media tarde. Pierdes 30 segundos hurgando en una app cada vez que quieres cambiar algo. Y el sonido, por más que suban el volumen, nunca termina de envolverte.</p>
+          <p class="reveal" data-d="2" style="margin-top:18px;">Te acostumbras al ruido de fondo: el del metro, el de la oficina, el de tu propia mente. Dejas de notar lo que te falta hasta que algo lo hace evidente.</p>
+        </div>
+        <div class="reveal" data-d="3">
+          <div class="stat">68%<span>de las personas describe sus audífonos como "suficientes", no como excelentes.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLUCIÓN -->
+  <section class="solucion pad" id="aura-solucion">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow reveal">La solución</p>
+        <h2 class="reveal" data-d="1">Tres razones para no volver atrás.</h2>
+      </div>
+      <div class="sol-grid">
+        <article class="sol-card reveal" data-d="1">
+          <div class="sol-num">01</div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 12h2l2-6 4 16 3-10 2 4h5"/></svg>
+          </div>
+          <h3>Silencio que de verdad silencia</h3>
+          <p>Cancelación de ruido adaptativa que lee tu entorno 200 veces por segundo y lo apaga antes de que llegue a ti.</p>
+        </article>
+        <article class="sol-card reveal" data-d="2">
+          <div class="sol-num">02</div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M8 10h4M8 14h8"/></svg>
+          </div>
+          <h3>El control, en la palma de tu mano</h3>
+          <p>El estuche tiene pantalla táctil. Cambia de modo, salta canciones y ve tu batería sin sacar el teléfono.</p>
+        </article>
+        <article class="sol-card reveal" data-d="3">
+          <div class="sol-num">03</div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M5 12H2M22 12h-3M6 6l-2-2M20 20l-2-2"/><circle cx="12" cy="12" r="4"/></svg>
+          </div>
+          <h3>Energía para días enteros</h3>
+          <p>20 horas con el estuche. Una carga de 5 minutos te da 2 horas extra. Te olvidas del cable durante toda la semana.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUNCIONES -->
+  <section class="func pad" id="aura-funciones">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow reveal">Funciones</p>
+        <h2 class="reveal" data-d="1">Todo lo que esperas. Y seis cosas que no.</h2>
+      </div>
+      <div class="func-layout">
+        <div class="func-visual reveal">
+          <img src="{{ 'aura-final-frame.png' | asset_url }}" alt="Estuche AURA con pantalla táctil iluminada mostrando los controles de sonido ambiente, flanqueado por los dos audífonos flotando" loading="lazy">
+          <div class="tag"><b>●</b> Pantalla táctil · Sonido ambiente</div>
+        </div>
+        <div class="func-grid reveal" data-d="1">
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 12h2l2-6 4 16 3-10 2 4h5"/></svg>
+            <h3>Cancelación de ruido</h3>
+            <p>Activa, adaptativa y por capas. Tú decides cuánto mundo entra.</p>
+          </div>
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="12" r="2.4"/></svg>
+            <h3>Pantalla táctil</h3>
+            <p>Controla música, modos y batería directamente desde el estuche.</p>
+          </div>
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.2"/></svg>
+            <h3>Toma fotos a distancia</h3>
+            <p>Disparador integrado en los audífonos: pulsa y captura la foto desde lejos, sin tocar el teléfono.</p>
+          </div>
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>
+            <h3>Sonido ambiente</h3>
+            <p>Deja entrar lo justo: una voz, un anuncio, tu nombre en la calle.</p>
+          </div>
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="14" height="10" rx="2.5"/><path d="M18 10h2v4h-2"/><path d="M9 12l2 2 3-4"/></svg>
+            <h3>Carga visible</h3>
+            <p>El estuche muestra el porcentaje exacto. Sin adivinar, sin sustos.</p>
+          </div>
+          <div class="func-item">
+            <svg class="fi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+            <h3>Fondo personalizable</h3>
+            <p>Cambia el fondo de la pantalla del estuche. Que se sienta tuyo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CIENCIA -->
+  <section class="ciencia pad" id="aura-ciencia">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow reveal">La ciencia</p>
+        <h2 class="reveal" data-d="1">Ingeniería que se nota en cada detalle.</h2>
+        <p class="lead reveal" data-d="2" style="color:rgba(250,248,243,.72);margin-top:22px;">Cada AURA pasa por 47 controles de calidad antes de salir de fábrica. Drivers de grafeno, aluminio anodizado y una batería pensada para durar años, no meses.</p>
+      </div>
+      <div class="spec-grid">
+        <div class="spec reveal"><div class="n">20<span class="u">h</span></div><div class="l">de autonomía total con el estuche de carga.</div></div>
+        <div class="spec reveal" data-d="1"><div class="n">11<span class="u">mm</span></div><div class="l">drivers de grafeno para graves limpios y profundos.</div></div>
+        <div class="spec reveal" data-d="2"><div class="n">-42<span class="u">dB</span></div><div class="l">de reducción de ruido en cancelación máxima.</div></div>
+        <div class="spec reveal" data-d="3"><div class="n">IPX5</div><div class="l">resistencia al sudor y a la lluvia ligera.</div></div>
+      </div>
+      <div class="badges">
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg> Garantía 30 días</span>
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Envío gratis</span>
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Pago seguro</span>
+        <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="5"/></svg> 2 años de soporte</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIOS -->
+  <section class="testimonios pad" id="aura-opiniones">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow reveal">Opiniones</p>
+        <h2 class="reveal" data-d="1">+25.000 personas ya cambiaron de bando.</h2>
+      </div>
+      <div class="test-grid">
+        <figure class="quote reveal" data-d="1">
+          <div class="stars" aria-label="5 de 5 estrellas">★★★★★</div>
+          <div class="qmark" aria-hidden="true">"</div>
+          <p>"La cancelación de ruido es de otro planeta. Me subo al metro, los pongo y desaparece todo. No vuelvo a unos normales."</p>
+          <figcaption class="who"><span class="av" aria-hidden="true">M</span><span><b>Mariana Ortiz</b><span>Diseñadora UX</span></span></figcaption>
+        </figure>
+        <figure class="quote reveal" data-d="2">
+          <div class="stars" aria-label="5 de 5 estrellas">★★★★★</div>
+          <div class="qmark" aria-hidden="true">"</div>
+          <p>"Lo de la pantalla en el estuche parece un gadget, pero lo uso todo el día. Cambiar de modo sin sacar el móvil engancha."</p>
+          <figcaption class="who"><span class="av" aria-hidden="true">D</span><span><b>Daniel Reyes</b><span>Productor musical</span></span></figcaption>
+        </figure>
+        <figure class="quote reveal" data-d="3">
+          <div class="stars" aria-label="5 de 5 estrellas">★★★★★</div>
+          <div class="qmark" aria-hidden="true">"</div>
+          <p>"20 horas reales. Viajé varios días sin cargador y aguantaron. El sonido, envolvente sin cansar. Vale cada peso."</p>
+          <figcaption class="who"><span class="av" aria-hidden="true">C</span><span><b>Carolina Méndez</b><span>Consultora · viaja cada semana</span></span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing pad" id="aura-precio">
+    <div class="wrap">
+      <div class="section-head" style="text-align:center;max-width:none;margin:0 auto;">
+        <p class="eyebrow reveal" style="justify-content:center;display:inline-flex;">Precio</p>
+        <h2 class="reveal" data-d="1" style="font-size:clamp(2.1rem,2rem + 3.4vw,4.4rem);">Una sola versión. Sin letra pequeña.</h2>
+      </div>
+      <div class="price-card reveal" data-d="1">
+        <span class="ribbon">Lanzamiento · ahorra 65%</span>
+        <div class="price-now">{{ price_now }}</div>
+        <div><span class="price-was">{{ price_was }}</span><span class="save">{{ price_save }}</span></div>
+        <ul class="price-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Audífonos AURA + estuche con pantalla</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Envío gratis a todo el país</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Garantía y devolución a 30 días</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
+        </ul>
+        <a href="{{ buy_url }}" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></a>
+        <p class="price-fine">Pago seguro · Disponibilidad limitada de lanzamiento</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="aura-foot" id="aura-ayuda">
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-brand">
+          <span class="logo">AURA<span style="color:var(--aura-accent)">.</span></span>
+          <p>Audífonos premium diseñados para que el mundo se calle y la música hable. Hechos para durar.</p>
+          <div class="socials">
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.3 2.1 1.6 3.7 3.7 4v2.6c-1.4 0-2.7-.4-3.7-1.1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 1.9 2.6V3H16z"/></svg></a>
+            <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M11 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h2.8l-6.1 7 7.2 11h-5.6l-4.4-6.4L6 21H3.2l6.6-7.5L3 3h5.7l4 5.9L17.5 3zm-1 16.2h1.5L8 4.7H6.4l10.1 14.5z"/></svg></a>
+          </div>
+        </div>
+        <div class="foot-cols">
+          <div class="foot-col">
+            <h4>Producto</h4>
+            <a href="#aura-funciones">Funciones</a>
+            <a href="#aura-ciencia">Especificaciones</a>
+            <a href="#aura-precio">Precio</a>
+            <a href="#aura-opiniones">Opiniones</a>
+          </div>
+          <div class="foot-col">
+            <h4>Ayuda</h4>
+            <a href="#">Envíos y entregas</a>
+            <a href="#">Devoluciones</a>
+            <a href="#">Garantía</a>
+            <a href="#">Contacto</a>
+          </div>
+          <div class="foot-col">
+            <h4>Compañía</h4>
+            <a href="#">Sobre AURA</a>
+            <a href="#">Sostenibilidad</a>
+            <a href="#">Términos</a>
+            <a href="#">Privacidad</a>
+          </div>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 AURA Audio. Todos los derechos reservados.</span>
+        <span>Hecho con cuidado · Silencia el mundo. Vive el sonido.</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var root = document.getElementById('aura-landing');
+  if(!root) return;
+
+  /* Navbar scroll state */
+  var nav = document.getElementById('aura-nav');
+  var onScroll = function(){
+    if(window.scrollY > 24){ nav.classList.add('scrolled'); }
+    else{ nav.classList.remove('scrolled'); }
+  };
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* Mobile menu */
+  var burger = document.getElementById('aura-burger');
+  var menu = document.getElementById('aura-mobileMenu');
+  var toggle = function(open){
+    burger.classList.toggle('open', open);
+    menu.classList.toggle('open', open);
+    burger.setAttribute('aria-expanded', open ? 'true':'false');
+    menu.setAttribute('aria-hidden', open ? 'false':'true');
+  };
+  burger.addEventListener('click', function(){ toggle(!menu.classList.contains('open')); });
+  menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ toggle(false); }); });
+
+  /* Reveal on scroll */
+  var reveals = root.querySelectorAll('.reveal:not(.in)');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, {threshold:.14, rootMargin:'0px 0px -8% 0px'});
+    reveals.forEach(function(el){ io.observe(el); });
+  } else {
+    reveals.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* Hero ping-pong loop */
+  var video = document.getElementById('aura-heroVideo');
+  var poster = document.getElementById('aura-heroPoster');
+  if(video){
+    var reversing = false, lastTs = null, rafId = null;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var step = function(ts){
+      if(!reversing){ return; }
+      if(lastTs === null){ lastTs = ts; }
+      var dt = (ts - lastTs)/1000;
+      lastTs = ts;
+      var t = video.currentTime - dt;
+      if(t <= 0.02){
+        video.currentTime = 0;
+        reversing = false; lastTs = null;
+        var p = video.play();
+        if(p && p.catch){ p.catch(function(){}); }
+        return;
+      }
+      try{ video.currentTime = t; }catch(e){}
+      rafId = requestAnimationFrame(step);
+    };
+
+    video.addEventListener('ended', function(){
+      if(reduce){ return; }
+      reversing = true; lastTs = null;
+      try{ video.pause(); }catch(e){}
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(step);
+    });
+
+    var hidePoster = function(){
+      if(poster){ poster.style.transition='opacity .8s ease'; poster.style.opacity='0'; }
+    };
+    if(video.readyState >= 3){ hidePoster(); }
+    video.addEventListener('canplay', hidePoster, {once:true});
+    video.addEventListener('playing', hidePoster, {once:true});
+
+    var tryPlay = function(){ var p = video.play(); if(p && p.catch){ p.catch(function(){}); } };
+    video.addEventListener('loadeddata', tryPlay, {once:true});
+    tryPlay();
+
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden){ try{ video.pause(); }catch(e){} cancelAnimationFrame(rafId); reversing=false; lastTs=null; }
+      else if(!reversing){ tryPlay(); }
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "AURA Landing",
+  "tag": "section",
+  "class": "aura-landing-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Botón Comprar"
+    },
+    {
+      "type": "url",
+      "id": "checkout_url",
+      "label": "URL del botón Comprar",
+      "info": "Cuando crees el producto en Shopify, pega aquí el link de pago / checkout. Por defecto hace scroll a la sección Precio."
+    },
+    {
+      "type": "header",
+      "content": "Precio"
+    },
+    {
+      "type": "text",
+      "id": "price_now",
+      "label": "Precio actual",
+      "default": "$119.900"
+    },
+    {
+      "type": "text",
+      "id": "price_was",
+      "label": "Precio anterior (tachado)",
+      "default": "$345.900"
+    },
+    {
+      "type": "text",
+      "id": "price_save",
+      "label": "Texto de ahorro",
+      "default": "Ahorras $226.000"
+    },
+    {
+      "type": "header",
+      "content": "Urgencia"
+    },
+    {
+      "type": "text",
+      "id": "stock_left",
+      "label": "Unidades restantes",
+      "default": "17"
+    }
+  ],
+  "presets": [
+    {
+      "name": "AURA Landing"
+    }
+  ]
+}
+{% endschema %}
