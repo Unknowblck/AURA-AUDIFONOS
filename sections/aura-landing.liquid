@@ -30,7 +30,7 @@
     font-weight:400;
     line-height:1.55;
     -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
+    overflow-x:clip;
   }
   .aura-landing *{box-sizing:border-box;}
   .aura-landing img,.aura-landing video{display:block;max-width:100%;}
@@ -138,9 +138,10 @@
       linear-gradient(to top,rgba(15,12,8,.62) 0%,rgba(15,12,8,.12) 38%,rgba(15,12,8,0) 60%),
       linear-gradient(to right,rgba(15,12,8,.34) 0%,rgba(15,12,8,0) 55%);
   }
-  .aura-landing .hero-in{position:relative;z-index:2;width:100%;padding-bottom:clamp(40px,7vh,80px);padding-top:120px;}
+  .aura-landing .hero-in{position:relative;z-index:2;width:100%;padding-bottom:clamp(40px,7vh,80px);padding-top:clamp(72px,9vh,108px);}
   @media (max-width:760px){
-    .aura-landing .hero{min-height:170vh;}
+    .aura-landing .hero{min-height:150vh;}
+    .aura-landing .hero-in{padding-top:78px;}
   }
   .aura-landing .hero h1{
     color:#fff;font-size:clamp(2.9rem,8.4vw,6.6rem);max-width:14ch;
@@ -173,6 +174,7 @@
   }
   .aura-landing .scroll-cue .bar{width:1px;height:34px;background:linear-gradient(to bottom,rgba(255,255,255,.7),transparent);animation:aura-cue 2.2s var(--aura-ease) infinite;}
   @keyframes aura-cue{0%{transform:scaleY(0);transform-origin:top}45%{transform:scaleY(1);transform-origin:top}55%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+  @media (max-width:760px),(max-height:740px){.aura-landing .scroll-cue{display:none;}}
 
   .aura-landing .pad{padding:clamp(74px,11vh,140px) 0;}
   .aura-landing .section-head{max-width:62ch;}
@@ -211,7 +213,8 @@
   .aura-landing .func{background:var(--aura-cloud);}
   .aura-landing .func-layout{display:grid;gap:34px;grid-template-columns:1fr;align-items:start;margin-top:54px;}
   .aura-landing .func-visual{position:relative;border-radius:22px;overflow:hidden;background:#e9e4da;aspect-ratio:16/11;border:1px solid var(--aura-line);}
-  .aura-landing .func-visual img{width:100%;height:100%;object-fit:cover;}
+  .aura-landing .func-visual img,
+  .aura-landing .func-visual video{width:100%;height:100%;object-fit:cover;display:block;}
   .aura-landing .func-visual .tag{
     position:absolute;left:16px;bottom:16px;background:rgba(8,8,8,.72);color:#fff;backdrop-filter:blur(8px);
     padding:9px 15px;border-radius:100px;font-size:.78rem;letter-spacing:.04em;display:flex;gap:8px;align-items:center;
@@ -425,7 +428,11 @@
       </div>
       <div class="func-layout">
         <div class="func-visual reveal">
-          <img src="{{ 'aura-final-frame.png' | asset_url }}" alt="Estuche AURA con pantalla táctil iluminada mostrando los controles de sonido ambiente, flanqueado por los dos audífonos flotando" loading="lazy">
+          <video autoplay muted loop playsinline preload="metadata"
+                 poster="{{ 'aura-final-frame.png' | asset_url }}"
+                 aria-label="Estuche AURA con pantalla táctil iluminada mostrando los controles de sonido ambiente">
+            <source src="{{ 'aura-transition.mp4' | asset_url }}" type="video/mp4">
+          </video>
           <div class="tag"><b>●</b> Pantalla táctil · Sonido ambiente</div>
         </div>
         <div class="func-grid reveal" data-d="1">
@@ -525,7 +532,7 @@
         <h2 class="reveal" data-d="1" style="font-size:clamp(2.1rem,2rem + 3.4vw,4.4rem);">Una sola versión. Sin letra pequeña.</h2>
       </div>
       <div class="price-card reveal" data-d="1">
-        <span class="ribbon">Lanzamiento · ahorra 65%</span>
+        <span class="ribbon">Últimas unidades · ahorro 65%</span>
         <div class="price-now">{{ price_now }}</div>
         <div><span class="price-was">{{ price_was }}</span><span class="save">{{ price_save }}</span></div>
         <ul class="price-list">
@@ -613,15 +620,26 @@
   burger.addEventListener('click', function(){ toggle(!menu.classList.contains('open')); });
   menu.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ toggle(false); }); });
 
-  /* Reveal on scroll */
+  /* Reveal on scroll (with fallback to guarantee visibility) */
   var reveals = root.querySelectorAll('.reveal:not(.in)');
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
         if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
       });
-    }, {threshold:.14, rootMargin:'0px 0px -8% 0px'});
+    }, {threshold:.05, rootMargin:'0px 0px 0px 0px'});
     reveals.forEach(function(el){ io.observe(el); });
+    /* Safety net: if any reveal stays hidden 2.5s after first scroll, force visible */
+    var revealFallback = function(){
+      setTimeout(function(){
+        root.querySelectorAll('.reveal:not(.in)').forEach(function(el){
+          var r = el.getBoundingClientRect();
+          if(r.top < window.innerHeight + 200){ el.classList.add('in'); }
+        });
+      }, 2500);
+    };
+    window.addEventListener('scroll', revealFallback, {passive:true, once:true});
+    setTimeout(revealFallback, 3500);
   } else {
     reveals.forEach(function(el){ el.classList.add('in'); });
   }
