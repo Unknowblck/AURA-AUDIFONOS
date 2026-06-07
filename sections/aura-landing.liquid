@@ -156,6 +156,38 @@
     .aura-landing .hero{min-height:150vh;}
     .aura-landing .hero-in{padding-top:78px;}
   }
+
+  /* Hero text stages — cross-fade with scroll */
+  .aura-landing .hero-stages{
+    display:grid;grid-template-columns:1fr;position:relative;
+  }
+  .aura-landing .hero-stage{
+    grid-area:1/1/2/2;
+    opacity:0;transform:translateY(28px);
+    transition:opacity .55s var(--aura-ease),transform .55s var(--aura-ease);
+    pointer-events:none;
+    will-change:opacity,transform;
+  }
+  .aura-landing .hero-stage.active{
+    opacity:1;transform:translateY(0);pointer-events:auto;
+  }
+  .aura-landing .hero-stage h1{
+    color:#fff;font-size:clamp(2.4rem,6.6vw,5.4rem);max-width:16ch;
+    text-shadow:0 2px 40px rgba(0,0,0,.25);
+  }
+  .aura-landing .hero-stage h1 .o{color:var(--aura-accent);}
+  .aura-landing .hero-stage .eyebrow{margin-bottom:14px;}
+  .aura-landing .hero-stage .hero-sub{
+    color:rgba(255,255,255,.9);font-weight:300;
+    font-size:clamp(1rem,1rem + .5vw,1.2rem);max-width:46ch;
+    margin:22px 0 0;
+  }
+  /* Final stage carries the price + CTAs */
+  .aura-landing .hero-stage.stage-final .hero-price{margin:20px 0 6px;}
+  .aura-landing .hero-stage.stage-final .hero-urgency{margin:14px 0 22px;}
+  .aura-landing .hero-stage.stage-final .hero-actions{margin-top:0;}
+  .aura-landing .hero-stage.stage-final .social-proof{margin-top:24px;}
+  .aura-landing .hero-stage.stage-final h1{font-size:clamp(2.6rem,7vw,5.8rem);}
   .aura-landing .hero h1{
     color:#fff;font-size:clamp(2.9rem,8.4vw,6.6rem);max-width:14ch;
     text-shadow:0 2px 40px rgba(0,0,0,.25);
@@ -355,24 +387,46 @@
     <img class="hero-poster" src="{{ 'aura-hero-poster.webp' | asset_url }}" alt="" aria-hidden="true" id="aura-heroPoster" fetchpriority="high">
     <canvas class="hero-canvas" id="aura-heroCanvas" aria-hidden="true"></canvas>
     <div class="wrap hero-in">
-      <p class="eyebrow reveal in">Audífonos AURA · Edición Pantalla</p>
-      <h1 class="reveal in" data-d="1">Silencia el mundo.<br><span class="o">Vive</span> el sonido.</h1>
-      <p class="hero-sub reveal in" data-d="2">Cancelación de ruido adaptativa, pantalla táctil en el estuche y 20 horas de batería. Diseñados para desaparecer en tu día y dejarte solo con la música.</p>
-      <div class="hero-price reveal in" data-d="3">
-        <span class="hp-now">{{ price_now }}</span>
-        <span class="hp-was">antes {{ price_was }}</span>
-      </div>
-      <div class="hero-urgency reveal in" data-d="3" role="status">
-        <span class="pulse" aria-hidden="true"></span>
-        <span>Últimas unidades — quedan <strong>{{ stock_left }}</strong> a este precio</span>
-      </div>
-      <div class="hero-actions reveal in" data-d="3">
-        <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Comprar ahora <span class="arr">→</span></a>
-        <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
-      </div>
-      <div class="social-proof reveal in" data-d="4">
-        <span class="stars" aria-hidden="true">★★★★★</span>
-        <span class="sp-text"><strong>4.9/5</strong> · <strong>+25.000</strong> vendidos</span>
+      <div class="hero-stages" id="aura-heroStages">
+
+        <div class="hero-stage active" data-stage="0">
+          <p class="eyebrow">Audífonos AURA · Edición Pantalla</p>
+          <h1>Silencia el mundo.<br><span class="o">Vive</span> el sonido.</h1>
+          <p class="hero-sub">Cancelación de ruido adaptativa, pantalla táctil en el estuche y 20 horas de batería.</p>
+        </div>
+
+        <div class="hero-stage" data-stage="1">
+          <p class="eyebrow">Cancelación adaptativa</p>
+          <h1>Que el ruido sea <span class="o">opcional</span>.</h1>
+          <p class="hero-sub">Lee tu entorno 200 veces por segundo y lo apaga antes de que llegue a ti. El metro deja de ser metro.</p>
+        </div>
+
+        <div class="hero-stage" data-stage="2">
+          <p class="eyebrow">Pantalla en el estuche</p>
+          <h1>El control, en la palma de tu <span class="o">mano</span>.</h1>
+          <p class="hero-sub">Cambia de modo, salta canciones y mira la batería sin sacar el teléfono. Personalizable.</p>
+        </div>
+
+        <div class="hero-stage stage-final" data-stage="3">
+          <p class="eyebrow">Últimas unidades · ahorro 65%</p>
+          <h1>Hoy a <span class="o">{{ price_now }}</span>.</h1>
+          <div class="hero-price">
+            <span class="hp-was">antes {{ price_was }}</span>
+          </div>
+          <div class="hero-urgency" role="status">
+            <span class="pulse" aria-hidden="true"></span>
+            <span>Quedan <strong>{{ stock_left }}</strong> unidades a este precio</span>
+          </div>
+          <div class="hero-actions">
+            <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}>Comprar ahora <span class="arr">→</span></a>
+            <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
+          </div>
+          <div class="social-proof">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span class="sp-text"><strong>4.9/5</strong> · <strong>+25.000</strong> vendidos</span>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="scroll-cue" aria-hidden="true"><span>Descubre</span><span class="bar"></span></div>
@@ -739,7 +793,16 @@
     if(document.readyState === 'complete'){ loadRestIdle(); }
     else { window.addEventListener('load', loadRestIdle, {once:true}); }
 
-    /* Scroll handler — map scroll progress through hero to frame index */
+    /* Hero text stages — set up + activate based on scroll progress */
+    var stages = root.querySelectorAll('#aura-heroStages .hero-stage');
+    var lastStageIdx = -1;
+    var setStage = function(idx){
+      if(idx === lastStageIdx) return;
+      lastStageIdx = idx;
+      stages.forEach(function(s, i){ s.classList.toggle('active', i === idx); });
+    };
+
+    /* Scroll handler — map scroll progress through hero to frame index + stage */
     var ticking = false;
     var onScroll = function(){
       if(ticking) return;
@@ -754,6 +817,13 @@
         if(progress > 1) progress = 1;
         var frame = progress * (totalFrames - 1);
         draw(frame);
+        /* 4 stages mapped to 4 progress ranges (0-.25, .25-.5, .5-.75, .75-1) */
+        var stageIdx;
+        if(progress < 0.28) stageIdx = 0;
+        else if(progress < 0.56) stageIdx = 1;
+        else if(progress < 0.78) stageIdx = 2;
+        else stageIdx = 3;
+        setStage(stageIdx);
         ticking = false;
       });
     };
