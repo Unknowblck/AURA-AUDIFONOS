@@ -8,11 +8,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-{%- assign buy_url = section.settings.checkout_url | default: '#aura-precio' -%}
 {%- assign price_now = section.settings.price_now | default: '$119.900' -%}
 {%- assign price_was = section.settings.price_was | default: '$345.900' -%}
 {%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
 {%- assign stock_left = section.settings.stock_left | default: '17' -%}
+
+{%- comment -%} Auto-detect Audifonos product for instant checkout {%- endcomment -%}
+{%- assign aura_product = all_products['audifonos'] -%}
+{%- assign aura_variant_id = '' -%}
+{%- if aura_product and aura_product.first_available_variant -%}
+  {%- assign aura_variant_id = aura_product.first_available_variant.id -%}
+  {%- assign buy_url = '/cart/' | append: aura_variant_id | append: ':1' -%}
+{%- else -%}
+  {%- assign buy_url = section.settings.checkout_url | default: '/products/audifonos' -%}
+{%- endif -%}
+
+{%- comment -%} Preload first frame and hero poster for fast LCP {%- endcomment -%}
+<link rel="preload" as="image" href="{{ 'aura-hero-poster.webp' | asset_url }}" fetchpriority="high">
+<link rel="preload" as="image" href="{{ 'aura-frame-001.webp' | asset_url }}">
 
 <style>
   .aura-landing{
@@ -125,7 +138,7 @@
   .aura-landing .hero-sticky{
     position:sticky;top:0;height:100vh;width:100%;
     display:flex;align-items:flex-end;overflow:hidden;
-    background:#e9e4da url('{{ 'aura-hero-poster.png' | asset_url }}') center/cover no-repeat;
+    background:#e9e4da url('{{ 'aura-hero-poster.webp' | asset_url }}') center/cover no-repeat;
   }
   .aura-landing .hero-canvas,
   .aura-landing .hero-poster{
@@ -311,7 +324,7 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
-        <a href="{{ buy_url }}" class="btn btn-primary nav-cta">Comprar</a>
+        <a href="{{ buy_url }}" class="btn btn-primary nav-cta" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}>Comprar</a>
         <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
           <span></span><span></span><span></span>
         </button>
@@ -324,7 +337,7 @@
     <a href="#aura-precio">Precio</a>
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
-    <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora</a>
+    <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Comprar ahora</a>
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
@@ -332,14 +345,14 @@
     window.AURA_FRAME_URLS = [
       {%- for n in (1..56) -%}
         {%- assign s = '000' | append: n | slice: -3, 3 -%}
-        {%- assign fname = 'aura-frame-' | append: s | append: '.jpg' -%}
+        {%- assign fname = 'aura-frame-' | append: s | append: '.webp' -%}
         "{{ fname | asset_url }}"{%- unless forloop.last -%},{%- endunless -%}
       {%- endfor -%}
     ];
   </script>
   <section class="hero" id="aura-inicio">
     <div class="hero-sticky">
-    <img class="hero-poster" src="{{ 'aura-hero-poster.png' | asset_url }}" alt="" aria-hidden="true" id="aura-heroPoster">
+    <img class="hero-poster" src="{{ 'aura-hero-poster.webp' | asset_url }}" alt="" aria-hidden="true" id="aura-heroPoster" fetchpriority="high">
     <canvas class="hero-canvas" id="aura-heroCanvas" aria-hidden="true"></canvas>
     <div class="wrap hero-in">
       <p class="eyebrow reveal in">Audífonos AURA · Edición Pantalla</p>
@@ -354,7 +367,7 @@
         <span>Últimas unidades — quedan <strong>{{ stock_left }}</strong> a este precio</span>
       </div>
       <div class="hero-actions reveal in" data-d="3">
-        <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora <span class="arr">→</span></a>
+        <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Comprar ahora <span class="arr">→</span></a>
         <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
       </div>
       <div class="social-proof reveal in" data-d="4">
@@ -428,8 +441,8 @@
       </div>
       <div class="func-layout">
         <div class="func-visual reveal">
-          <video autoplay muted loop playsinline preload="metadata"
-                 poster="{{ 'aura-final-frame.png' | asset_url }}"
+          <video autoplay muted loop playsinline preload="none" id="aura-funcVideo"
+                 poster="{{ 'aura-final-frame.webp' | asset_url }}"
                  aria-label="Estuche AURA con pantalla táctil iluminada mostrando los controles de sonido ambiente">
             <source src="{{ 'aura-transition.mp4' | asset_url }}" type="video/mp4">
           </video>
@@ -541,7 +554,7 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Garantía y devolución a 30 días</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
-        <a href="{{ buy_url }}" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></a>
+        <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Lo quiero ahora <span class="arr">→</span></a>
         <p class="price-fine">Pago seguro · Disponibilidad limitada de lanzamiento</p>
       </div>
     </div>
@@ -694,24 +707,43 @@
       currentIdx = idx;
     };
 
-    /* Preload frames; draw first frame as soon as it's ready */
+    /* Lazy load frames: critical first frames immediately, rest in idle time */
     var onFirstReady = function(){
       resize();
       if(poster){ poster.style.transition='opacity .6s ease'; poster.style.opacity='0'; }
     };
-    for(var i = 0; i < totalFrames; i++){
-      (function(i){
-        var img = new Image();
-        img.decoding = 'async';
-        img.onload = function(){
-          loaded++;
-          if(i === 0){ onFirstReady(); }
-        };
-        img.onerror = function(){ loaded++; };
-        img.src = frameUrls[i];
-        frames[i] = img;
-      })(i);
-    }
+    var loadFrame = function(i){
+      if(frames[i]) return;
+      var img = new Image();
+      img.decoding = 'async';
+      img.onload = function(){ loaded++; if(i === 0){ onFirstReady(); } };
+      img.onerror = function(){ loaded++; };
+      img.src = frameUrls[i];
+      frames[i] = img;
+    };
+    /* Load first 8 frames immediately (covers initial paint + first scroll) */
+    var initialBatch = Math.min(8, totalFrames);
+    for(var k = 0; k < initialBatch; k++){ loadFrame(k); }
+    /* Load rest in idle time so it doesn't compete with critical work */
+    var loadRestIdle = function(){
+      var idx = initialBatch;
+      var loadNext = function(){
+        if(idx >= totalFrames) return;
+        loadFrame(idx++);
+        if('requestIdleCallback' in window){
+          requestIdleCallback(loadNext, {timeout:200});
+        } else {
+          setTimeout(loadNext, 30);
+        }
+      };
+      if('requestIdleCallback' in window){
+        requestIdleCallback(loadNext, {timeout:500});
+      } else {
+        setTimeout(loadNext, 300);
+      }
+    };
+    if(document.readyState === 'complete'){ loadRestIdle(); }
+    else { window.addEventListener('load', loadRestIdle, {once:true}); }
 
     /* Scroll handler — map scroll progress through hero to frame index */
     var ticking = false;
@@ -735,6 +767,46 @@
     window.addEventListener('resize', resize);
     /* Initial draw once first frame loads */
     setTimeout(onScroll, 100);
+  }
+
+  /* Instant checkout — intercept Comprar clicks, POST to /cart/add, redirect to /checkout */
+  var buyBtns = root.querySelectorAll('[data-aura-buy]');
+  buyBtns.forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      var vid = btn.getAttribute('data-variant-id');
+      if(!vid) return; /* No variant -> let href take over (fallback) */
+      e.preventDefault();
+      btn.style.pointerEvents = 'none';
+      var original = btn.innerHTML;
+      btn.innerHTML = 'Cargando…';
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({id: parseInt(vid,10), quantity: 1})
+      }).then(function(r){
+        if(!r.ok) throw new Error('add failed');
+        window.location.href = '/checkout';
+      }).catch(function(){
+        /* Fallback: use href (cart permalink) which still works */
+        window.location.href = btn.getAttribute('href');
+      });
+    });
+  });
+
+  /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
+  var funcVideo = document.getElementById('aura-funcVideo');
+  if(funcVideo && 'IntersectionObserver' in window){
+    var vio = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          funcVideo.preload = 'auto';
+          funcVideo.load();
+          var p = funcVideo.play(); if(p && p.catch){ p.catch(function(){}); }
+          vio.unobserve(funcVideo);
+        }
+      });
+    }, {rootMargin:'200px 0px'});
+    vio.observe(funcVideo);
   }
 })();
 </script>
