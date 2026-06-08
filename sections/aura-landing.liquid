@@ -13,15 +13,8 @@
 {%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
 {%- assign stock_left = section.settings.stock_left | default: '17' -%}
 
-{%- comment -%} Auto-detect Audifonos product for instant checkout {%- endcomment -%}
-{%- assign aura_product = all_products['audifonos'] -%}
-{%- assign aura_variant_id = '' -%}
-{%- if aura_product and aura_product.first_available_variant -%}
-  {%- assign aura_variant_id = aura_product.first_available_variant.id -%}
-  {%- assign buy_url = '/cart/' | append: aura_variant_id | append: ':1' -%}
-{%- else -%}
-  {%- assign buy_url = section.settings.checkout_url | default: '/products/audifonos' -%}
-{%- endif -%}
+{%- comment -%} Buy URL points to product page where Releasit COD form takes over {%- endcomment -%}
+{%- assign buy_url = section.settings.checkout_url | default: '/products/audifonos' -%}
 
 {%- comment -%} Preload first frame and hero poster for fast LCP {%- endcomment -%}
 <link rel="preload" as="image" href="{{ 'aura-hero-poster.webp' | asset_url }}" fetchpriority="high">
@@ -356,7 +349,7 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
-        <a href="{{ buy_url }}" class="btn btn-primary nav-cta" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}>Comprar</a>
+        <a href="{{ buy_url }}" class="btn btn-primary nav-cta">Comprar</a>
         <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
           <span></span><span></span><span></span>
         </button>
@@ -369,7 +362,7 @@
     <a href="#aura-precio">Precio</a>
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
-    <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Comprar ahora</a>
+    <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora</a>
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
@@ -418,7 +411,7 @@
             <span>Quedan <strong>{{ stock_left }}</strong> unidades a este precio</span>
           </div>
           <div class="hero-actions">
-            <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}>Comprar ahora <span class="arr">→</span></a>
+            <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora <span class="arr">→</span></a>
             <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
           </div>
           <div class="social-proof">
@@ -602,7 +595,7 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Garantía y devolución a 30 días</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
-        <a href="{{ buy_url }}" class="btn btn-primary" data-aura-buy{% if aura_variant_id != "" %} data-variant-id="{{ aura_variant_id }}"{% endif %}">Lo quiero ahora <span class="arr">→</span></a>
+        <a href="{{ buy_url }}" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></a>
         <p class="price-fine">Pago seguro · Disponibilidad limitada de lanzamiento</p>
       </div>
     </div>
@@ -832,30 +825,6 @@
     /* Initial draw once first frame loads */
     setTimeout(onScroll, 100);
   }
-
-  /* Instant checkout — intercept Comprar clicks, POST to /cart/add, redirect to /checkout */
-  var buyBtns = root.querySelectorAll('[data-aura-buy]');
-  buyBtns.forEach(function(btn){
-    btn.addEventListener('click', function(e){
-      var vid = btn.getAttribute('data-variant-id');
-      if(!vid) return; /* No variant -> let href take over (fallback) */
-      e.preventDefault();
-      btn.style.pointerEvents = 'none';
-      var original = btn.innerHTML;
-      btn.innerHTML = 'Cargando…';
-      fetch('/cart/add.js', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify({id: parseInt(vid,10), quantity: 1})
-      }).then(function(r){
-        if(!r.ok) throw new Error('add failed');
-        window.location.href = '/checkout';
-      }).catch(function(){
-        /* Fallback: use href (cart permalink) which still works */
-        window.location.href = btn.getAttribute('href');
-      });
-    });
-  });
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
