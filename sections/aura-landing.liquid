@@ -333,6 +333,73 @@
     .aura-landing .foot-top{grid-template-columns:1.4fr 1.6fr;gap:50px;}
     .aura-landing .foot-cols{grid-template-columns:repeat(3,1fr);}
   }
+
+  /* Checkout modal — opens Releasit COD form in overlay */
+  .aura-checkout-modal{
+    position:fixed;inset:0;z-index:9999;display:none;
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .aura-checkout-modal.open{display:block;}
+  .aura-checkout-modal__backdrop{
+    position:absolute;inset:0;background:rgba(8,8,8,.7);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    cursor:pointer;animation:auraModalFade .3s ease;
+  }
+  .aura-checkout-modal__dialog{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:min(560px, calc(100vw - 28px));
+    height:min(86vh, 820px);
+    background:#F5F3EE;border-radius:22px;overflow:hidden;
+    box-shadow:0 50px 100px -30px rgba(0,0,0,.65);
+    display:flex;flex-direction:column;
+    animation:auraModalSlide .42s cubic-bezier(.22,.61,.36,1);
+  }
+  .aura-checkout-modal__head{
+    flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;background:#080808;color:#FAF8F3;
+  }
+  .aura-checkout-modal__title{
+    font-family:'Anton',sans-serif;text-transform:uppercase;letter-spacing:.12em;
+    font-size:1.05rem;
+  }
+  .aura-checkout-modal__title .o{color:#FF5A1F;}
+  .aura-checkout-modal__close{
+    width:36px;height:36px;border-radius:50%;border:0;cursor:pointer;
+    background:rgba(255,255,255,.12);color:#FAF8F3;
+    display:grid;place-items:center;
+    transition:background .3s,transform .3s;
+  }
+  .aura-checkout-modal__close:hover{background:#FF5A1F;transform:rotate(90deg);}
+  .aura-checkout-modal__close svg{width:18px;height:18px;}
+  .aura-checkout-modal__body{
+    flex:1;position:relative;background:#F5F3EE;overflow:hidden;
+  }
+  .aura-checkout-modal__loader{
+    position:absolute;inset:0;display:grid;place-items:center;
+    color:#8A857C;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;
+    pointer-events:none;transition:opacity .4s;
+  }
+  .aura-checkout-modal__loader.done{opacity:0;}
+  .aura-checkout-modal__loader .spin{
+    width:34px;height:34px;border:2.5px solid rgba(8,8,8,.12);
+    border-top-color:#FF5A1F;border-radius:50%;
+    animation:auraSpin .9s linear infinite;margin-bottom:14px;
+  }
+  .aura-checkout-modal__loader .spin-wrap{display:flex;flex-direction:column;align-items:center;}
+  .aura-checkout-modal iframe{
+    width:100%;height:100%;border:0;display:block;background:#F5F3EE;
+  }
+  @keyframes auraModalFade{from{opacity:0}to{opacity:1}}
+  @keyframes auraModalSlide{from{opacity:0;transform:translate(-50%,calc(-50% + 30px));}to{opacity:1;transform:translate(-50%,-50%);}}
+  @keyframes auraSpin{to{transform:rotate(360deg);}}
+  @media (max-width:760px){
+    .aura-checkout-modal__dialog{
+      width:100vw;height:100vh;height:100dvh;border-radius:0;top:0;left:0;transform:none;
+      animation:auraModalSlideMobile .42s cubic-bezier(.22,.61,.36,1);
+    }
+    @keyframes auraModalSlideMobile{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:none;}}
+  }
+  body.aura-modal-open{overflow:hidden;}
 </style>
 
 <div class="aura-landing" id="aura-landing">
@@ -646,6 +713,28 @@
     </div>
   </footer>
 
+  <!-- Checkout modal — Releasit COD form in overlay -->
+  <div class="aura-checkout-modal" id="aura-checkoutModal" aria-hidden="true" role="dialog" aria-label="Comprar AURA">
+    <div class="aura-checkout-modal__backdrop" data-aura-close></div>
+    <div class="aura-checkout-modal__dialog">
+      <div class="aura-checkout-modal__head">
+        <span class="aura-checkout-modal__title">AURA<span class="o">.</span> · COMPRAR</span>
+        <button type="button" class="aura-checkout-modal__close" data-aura-close aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6L18 18M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="aura-checkout-modal__body">
+        <div class="aura-checkout-modal__loader" id="aura-checkoutLoader">
+          <div class="spin-wrap">
+            <div class="spin"></div>
+            <span>Cargando formulario…</span>
+          </div>
+        </div>
+        <iframe id="aura-checkoutFrame" src="about:blank" title="Formulario de compra AURA"></iframe>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -825,6 +914,76 @@
     /* Initial draw once first frame loads */
     setTimeout(onScroll, 100);
   }
+
+  /* Checkout modal — open Releasit COD form in overlay */
+  var modal = document.getElementById('aura-checkoutModal');
+  var modalFrame = document.getElementById('aura-checkoutFrame');
+  var modalLoader = document.getElementById('aura-checkoutLoader');
+  var buyUrl = {{ buy_url | json }};
+
+  var openModal = function(){
+    if(!modalFrame.src || modalFrame.src === 'about:blank'){
+      if(modalLoader){ modalLoader.classList.remove('done'); }
+      modalFrame.src = buyUrl;
+    }
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('aura-modal-open');
+  };
+  var closeModal = function(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('aura-modal-open');
+  };
+
+  modal.querySelectorAll('[data-aura-close]').forEach(function(el){
+    el.addEventListener('click', closeModal);
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  /* Intercept Comprar clicks -> open modal instead of navigating */
+  var buyTargets = root.querySelectorAll('a.btn-primary[href]');
+  buyTargets.forEach(function(btn){
+    var href = btn.getAttribute('href') || '';
+    /* Only intercept buttons pointing to product/cart/checkout URLs */
+    if(href.indexOf('/products/') !== -1 || href.indexOf('/cart/') !== -1 || href === buyUrl){
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        openModal();
+      });
+    }
+  });
+
+  /* Once iframe loads, scroll to Releasit form inside (same-origin so this works) */
+  modalFrame.addEventListener('load', function(){
+    if(modalFrame.src === 'about:blank' || !modalFrame.src) return;
+    try {
+      var doc = modalFrame.contentDocument || modalFrame.contentWindow.document;
+      var attempt = function(retries){
+        var form = doc.querySelector(
+          '[class*="releasit" i],[id*="releasit" i],' +
+          '[class*="rcf-" i],[id*="rcf-" i],' +
+          '[class*="cod-form" i],[id*="cod-form" i],' +
+          '[class*="cod_form" i],[id*="cod_form" i],' +
+          'form[action*="releasit" i]'
+        );
+        if(form){
+          form.scrollIntoView({behavior:'instant', block:'start'});
+          if(modalLoader){ modalLoader.classList.add('done'); }
+        } else if(retries > 0){
+          setTimeout(function(){ attempt(retries - 1); }, 250);
+        } else {
+          /* form not detected — still hide loader so iframe is usable */
+          if(modalLoader){ modalLoader.classList.add('done'); }
+        }
+      };
+      attempt(8); /* ~2s of retries to allow Releasit JS to inject */
+    } catch(e) {
+      if(modalLoader){ modalLoader.classList.add('done'); }
+    }
+  });
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
