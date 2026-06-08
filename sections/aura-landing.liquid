@@ -97,19 +97,26 @@
   .aura-landing .aura-buy-form{display:contents;margin:0;padding:0;}
   .aura-landing .aura-buy-form button.btn{font:inherit;}
 
-  /* Navbar */
-  .aura-landing .nav{
-    position:sticky;top:0;z-index:60;
-    transition:background .4s var(--aura-ease),box-shadow .4s var(--aura-ease);
-    background:transparent;
-    border:0 !important;
-  }
-  .aura-landing .nav.scrolled{background:rgba(245,243,238,.82);backdrop-filter:blur(14px);}
+  /* Navbar — solid background, no border, no blur, no shadow */
   .aura-landing .nav,
+  .aura-landing .nav.scrolled{
+    position:sticky;top:0;z-index:60;
+    background:var(--aura-bg) !important;
+    border:0 !important;
+    box-shadow:none !important;
+    filter:none !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    outline:0 !important;
+  }
   .aura-landing .nav-in,
   .aura-landing .nav *{
-    border-top:0 !important;
-    border-bottom:0 !important;
+    border:0 !important;
+    box-shadow:none !important;
+  }
+  /* Re-allow button shadow specifically */
+  .aura-landing .nav .btn-primary{
+    box-shadow:0 12px 30px -12px rgba(255,90,31,.7) !important;
   }
   .aura-landing .nav-in{display:flex;align-items:center;justify-content:space-between;height:68px;}
   .aura-landing .logo{font-family:'Anton',sans-serif;font-size:1.45rem;letter-spacing:.16em;text-transform:uppercase;color:var(--aura-ink);}
