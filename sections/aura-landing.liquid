@@ -361,7 +361,7 @@
       </nav>
       <div class="nav-right">
         {%- if aura_variant_id != '' -%}
-        <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+        <form action="/cart/add?return_to=/cart" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
           <input type="hidden" name="id" value="{{ aura_variant_id }}">
           <input type="hidden" name="quantity" value="1">
           <button type="submit" name="add" class="btn btn-primary nav-cta">Comprar</button>
@@ -382,7 +382,7 @@
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
     {%- if aura_variant_id != '' -%}
-    <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+    <form action="/cart/add?return_to=/cart" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
       <input type="hidden" name="id" value="{{ aura_variant_id }}">
       <input type="hidden" name="quantity" value="1">
       <button type="submit" name="add" class="btn btn-primary">Comprar ahora</button>
@@ -439,7 +439,7 @@
           </div>
           <div class="hero-actions">
             {%- if aura_variant_id != '' -%}
-            <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+            <form action="/cart/add?return_to=/cart" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
               <input type="hidden" name="id" value="{{ aura_variant_id }}">
               <input type="hidden" name="quantity" value="1">
               <button type="submit" name="add" class="btn btn-primary">Comprar ahora <span class="arr">→</span></button>
@@ -631,7 +631,7 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
         {%- if aura_variant_id != '' -%}
-        <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+        <form action="/cart/add?return_to=/cart" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
           <input type="hidden" name="id" value="{{ aura_variant_id }}">
           <input type="hidden" name="quantity" value="1">
           <button type="submit" name="add" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></button>
@@ -869,6 +869,41 @@
     /* Initial draw once first frame loads */
     setTimeout(onScroll, 100);
   }
+
+  /* Buy flow: AJAX add to cart -> redirect straight to /cart where Releasit COD form lives
+     (HTML form fallback with return_to=/cart already works if JS fails) */
+  var buyForms = root.querySelectorAll('form.aura-buy-form');
+  buyForms.forEach(function(form){
+    form.addEventListener('submit', function(e){
+      var idInput = form.querySelector('input[name="id"]');
+      if(!idInput || !idInput.value) return; /* no variant -> let HTML submit handle */
+      e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
+      var originalText = btn ? btn.innerHTML : '';
+      if(btn){
+        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+        btn.innerHTML = 'Cargando…';
+      }
+      var fd = new FormData(form);
+      fetch('/cart/add.js', {
+        method: 'POST',
+        body: fd,
+        headers: {'Accept':'application/json'}
+      }).then(function(r){
+        if(!r.ok) throw new Error('add failed');
+        window.location.href = '/cart';
+      }).catch(function(){
+        /* fall back to normal submit which has return_to=/cart in action URL */
+        if(btn){
+          btn.disabled = false;
+          btn.style.pointerEvents = '';
+          btn.innerHTML = originalText;
+        }
+        form.submit();
+      });
+    });
+  });
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
