@@ -13,7 +13,14 @@
 {%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
 {%- assign stock_left = section.settings.stock_left | default: '17' -%}
 
-{%- comment -%} Buy URL points to product page where Releasit COD form takes over {%- endcomment -%}
+{%- comment -%} Detect Audifonos product so we can render real Shopify product forms inline.
+   Releasit watches the page DOM for product forms and mounts its COD flow.
+   Fallback URL keeps the page working even if the product doesn't exist yet. {%- endcomment -%}
+{%- assign aura_product = all_products['audifonos'] -%}
+{%- assign aura_variant_id = '' -%}
+{%- if aura_product and aura_product.first_available_variant -%}
+  {%- assign aura_variant_id = aura_product.first_available_variant.id -%}
+{%- endif -%}
 {%- assign buy_url = section.settings.checkout_url | default: '/products/audifonos' -%}
 
 {%- comment -%} Preload first frame and hero poster for fast LCP {%- endcomment -%}
@@ -86,6 +93,9 @@
   .aura-landing .btn-ghost:hover{background:var(--aura-ink);color:var(--aura-bg);border-color:var(--aura-ink);}
   .aura-landing .btn-light{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35);backdrop-filter:blur(6px);}
   .aura-landing .btn-light:hover{background:#fff;color:var(--aura-ink);transform:translateY(-2px);}
+  /* Product form embed — sits in flex containers as if it were a button */
+  .aura-landing .aura-buy-form{display:contents;margin:0;padding:0;}
+  .aura-landing .aura-buy-form button.btn{font:inherit;}
 
   /* Navbar */
   .aura-landing .nav{
@@ -350,7 +360,15 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
+        {%- if aura_variant_id != '' -%}
+        <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+          <input type="hidden" name="id" value="{{ aura_variant_id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" name="add" class="btn btn-primary nav-cta">Comprar</button>
+        </form>
+        {%- else -%}
         <a href="{{ buy_url }}" class="btn btn-primary nav-cta">Comprar</a>
+        {%- endif -%}
         <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
           <span></span><span></span><span></span>
         </button>
@@ -363,7 +381,15 @@
     <a href="#aura-precio">Precio</a>
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
+    {%- if aura_variant_id != '' -%}
+    <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+      <input type="hidden" name="id" value="{{ aura_variant_id }}">
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" name="add" class="btn btn-primary">Comprar ahora</button>
+    </form>
+    {%- else -%}
     <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora</a>
+    {%- endif -%}
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
@@ -412,7 +438,15 @@
             <span>Quedan <strong>{{ stock_left }}</strong> unidades a este precio</span>
           </div>
           <div class="hero-actions">
+            {%- if aura_variant_id != '' -%}
+            <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+              <input type="hidden" name="id" value="{{ aura_variant_id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" name="add" class="btn btn-primary">Comprar ahora <span class="arr">→</span></button>
+            </form>
+            {%- else -%}
             <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora <span class="arr">→</span></a>
+            {%- endif -%}
             <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
           </div>
           <div class="social-proof">
@@ -596,7 +630,15 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Garantía y devolución a 30 días</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
+        {%- if aura_variant_id != '' -%}
+        <form action="/cart/add" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
+          <input type="hidden" name="id" value="{{ aura_variant_id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" name="add" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></button>
+        </form>
+        {%- else -%}
         <a href="{{ buy_url }}" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></a>
+        {%- endif -%}
         <p class="price-fine">Pago seguro · Disponibilidad limitada de lanzamiento</p>
       </div>
     </div>
