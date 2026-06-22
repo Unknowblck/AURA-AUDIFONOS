@@ -433,7 +433,9 @@
 
   /* Slot del boton COD de Releasit (en la tarjeta de precio) + scroll suave a el */
   .aura-landing .aura-cod-slot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
-  .aura-landing .aura-cod-slot > *{width:100%;max-width:330px;margin-left:auto;margin-right:auto;}
+  .aura-landing .aura-cod-slot > .btn{width:100%;max-width:330px;margin-left:auto;margin-right:auto;}
+  .aura-landing .aura-cod-slot #_rsi-cod-form-embed-custom-hook{width:100%;}
+  .aura-landing .aura-cod-fallback{display:none;}
   html{scroll-behavior:smooth;}
   .aura-landing section[id]{scroll-margin-top:84px;}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -708,13 +710,16 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
         <div class="aura-cod-slot" id="aura-cod">
-          {%- assign aura_has_cod_block = false -%}
-          {%- for block in section.blocks -%}
-            {%- if block.type == '@app' -%}{%- assign aura_has_cod_block = true -%}{% render block %}{%- endif -%}
-          {%- endfor -%}
-          {%- unless aura_has_cod_block -%}
-          <a href="{{ product_url }}" class="btn btn-primary">Lo quiero — pago contra entrega <span class="arr">→</span></a>
-          {%- endunless -%}
+          {%- if aura_product and aura_product.first_available_variant -%}
+          {%- comment -%} Hook oficial de Releasit: incrusta el formulario COD aqui mismo (sin redirigir).
+             Releasit lee el producto/variante de estos inputs hermanos. Requiere el form en modo "Embedded" en Releasit. {%- endcomment -%}
+          <input type="hidden" name="product-id" value="{{ aura_product.id }}">
+          <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+          <div id="_rsi-cod-form-embed-custom-hook" data-product-id="{{ aura_product.id }}" data-variant-id="{{ aura_product.first_available_variant.id }}"></div>
+          <a href="{{ product_url }}" class="btn btn-primary aura-cod-fallback">Pedir contra entrega <span class="arr">→</span></a>
+          {%- else -%}
+          <a href="{{ product_url }}" class="btn btn-primary">Pedir contra entrega <span class="arr">→</span></a>
+          {%- endif -%}
         </div>
         <p class="cod-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Sin pagar nada por adelantado. <strong>Pagas en efectivo al recibir.</strong></p>
         <p class="price-fine">Garantía 30 días · Envío gratis a todo el país</p>
@@ -1019,6 +1024,14 @@
     updateSticky();
   }
 
+  /* Respaldo: si Releasit no incrusta el formulario COD, mostramos el enlace de respaldo */
+  var codHook = document.getElementById('_rsi-cod-form-embed-custom-hook');
+  var codFallback = root.querySelector('.aura-cod-fallback');
+  if(codFallback){
+    if(!codHook){ codFallback.style.display = 'inline-flex'; }
+    else { setTimeout(function(){ if(codHook.children.length === 0){ codFallback.style.display = 'inline-flex'; } }, 3500); }
+  }
+
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
   if(funcVideo && 'IntersectionObserver' in window){
@@ -1130,9 +1143,6 @@
       "id": "social_youtube",
       "label": "YouTube (URL)"
     }
-  ],
-  "blocks": [
-    { "type": "@app" }
   ],
   "presets": [
     {
