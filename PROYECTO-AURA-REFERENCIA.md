@@ -2,6 +2,8 @@
 
 > Snapshot del proyecto AURA al 2026-06-08. Sirve como base para próximas landings premium con animaciones scroll-driven en Shopify.
 
+> **ACTUALIZACIÓN 2026-06-21 (rama `mejoras-conversion`):** Ronda de conversión. El flujo COD se **unificó**: TODOS los botones llevan ahora a la página del producto (`/products/audifonos`), donde Releasit muestra el formulario de pago contra entrega (se eliminó el flujo viejo de form→/checkout y su JS). Además: barra sticky de compra en móvil, botón flotante de WhatsApp (setting), sección FAQ de objeciones COD, **precio dinámico** leído del producto de Shopify, badges/microcopy de "pago contra entrega", footer con políticas reales de Shopify, y se quitó el checkout express (Shop Pay/PayPal) de la página de producto. Detalle completo en `AUDITORIA-CONVERSION.md`.
+
 ## 🎯 Stack
 
 - **Repo GitHub:** https://github.com/Unknowblck/AURA-AUDIFONOS (rama `main`)
@@ -181,7 +183,8 @@ Carpeta: `diseno/aura-brand-kit/` — incluye documento HTML editorial, imágene
 | v9 | `5db08a4` | Releasit redirect |
 | v11 | `df06074` | Revert iframe modal |
 | v12 | `9a441f1` | Product forms nativos |
-| v14 | `3576d52` | **Checkout directo (FINAL)** |
+| v14 | `3576d52` | **Checkout directo** |
+| mejoras-conversion | (rama) | **COD unificado → página de producto + sticky móvil + WhatsApp + FAQ + precio dinámico + footer políticas + sin checkout express** |
 
 ---
 

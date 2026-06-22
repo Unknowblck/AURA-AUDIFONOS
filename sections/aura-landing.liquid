@@ -8,20 +8,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-{%- assign price_now = section.settings.price_now | default: '$119.900' -%}
-{%- assign price_was = section.settings.price_was | default: '$345.900' -%}
-{%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
-{%- assign stock_left = section.settings.stock_left | default: '17' -%}
-
-{%- comment -%} Detect Audifonos product so we can render real Shopify product forms inline.
-   Releasit watches the page DOM for product forms and mounts its COD flow.
-   Fallback URL keeps the page working even if the product doesn't exist yet. {%- endcomment -%}
+{%- comment -%} Producto AURA: lo detectamos para (1) leer el precio REAL de Shopify y (2) enviar cada boton a su pagina, donde vive el formulario de pago contra entrega (Releasit). {%- endcomment -%}
 {%- assign aura_product = all_products['audifonos'] -%}
-{%- assign aura_variant_id = '' -%}
-{%- if aura_product and aura_product.first_available_variant -%}
-  {%- assign aura_variant_id = aura_product.first_available_variant.id -%}
+
+{%- comment -%} Destino de los botones: la pagina del producto. Se puede sobreescribir con el setting checkout_url. {%- endcomment -%}
+{%- assign product_url = aura_product.url | default: '/products/audifonos' -%}
+{%- if section.settings.checkout_url != blank -%}
+  {%- assign product_url = section.settings.checkout_url -%}
 {%- endif -%}
-{%- assign buy_url = section.settings.checkout_url | default: '/products/audifonos' -%}
+
+{%- comment -%} Precio: preferimos el precio real del producto para que el landing nunca quede desincronizado del checkout. Si el producto no existe, usamos los valores manuales. {%- endcomment -%}
+{%- if aura_product and aura_product.price > 0 -%}
+  {%- assign price_now = aura_product.price | money -%}
+  {%- if aura_product.compare_at_price > aura_product.price -%}
+    {%- assign price_was = aura_product.compare_at_price | money -%}
+    {%- assign aura_save_amt = aura_product.compare_at_price | minus: aura_product.price | money -%}
+    {%- assign price_save = 'Ahorras ' | append: aura_save_amt -%}
+  {%- else -%}
+    {%- assign price_was = section.settings.price_was -%}
+    {%- assign price_save = section.settings.price_save -%}
+  {%- endif -%}
+{%- else -%}
+  {%- assign price_now = section.settings.price_now | default: '$119.900' -%}
+  {%- assign price_was = section.settings.price_was | default: '$345.900' -%}
+  {%- assign price_save = section.settings.price_save | default: 'Ahorras $226.000' -%}
+{%- endif -%}
+{%- assign stock_left = section.settings.stock_left | default: '17' -%}
+{%- assign shipping_time = section.settings.shipping_time | default: '2 a 5 dias habiles' -%}
+{%- assign wa_number = section.settings.whatsapp_number | default: '' -%}
+{%- assign wa_message = section.settings.whatsapp_message | default: 'Hola, quiero pedir los audifonos AURA con pago contra entrega' -%}
 
 {%- comment -%} Preload first frame and hero poster for fast LCP {%- endcomment -%}
 <link rel="preload" as="image" href="{{ 'aura-hero-poster.webp' | asset_url }}" fetchpriority="high">
@@ -93,9 +108,6 @@
   .aura-landing .btn-ghost:hover{background:var(--aura-ink);color:var(--aura-bg);border-color:var(--aura-ink);}
   .aura-landing .btn-light{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35);backdrop-filter:blur(6px);}
   .aura-landing .btn-light:hover{background:#fff;color:var(--aura-ink);transform:translateY(-2px);}
-  /* Product form embed — sits in flex containers as if it were a button */
-  .aura-landing .aura-buy-form{display:contents;margin:0;padding:0;}
-  .aura-landing .aura-buy-form button.btn{font:inherit;}
 
   /* Navbar — solid background, no border, no blur, no shadow */
   .aura-landing .nav,
@@ -149,7 +161,7 @@
 
   /* Hero — scroll-driven frame scrubbing */
   .aura-landing .hero{
-    min-height:200vh;position:relative;overflow:visible;
+    min-height:180vh;position:relative;overflow:visible;
     background:#e9e4da;
   }
   .aura-landing .hero-sticky{
@@ -170,7 +182,7 @@
   }
   .aura-landing .hero-in{position:relative;z-index:2;width:100%;padding-bottom:clamp(40px,7vh,80px);padding-top:clamp(72px,9vh,108px);}
   @media (max-width:760px){
-    .aura-landing .hero{min-height:150vh;}
+    .aura-landing .hero{min-height:135vh;}
     .aura-landing .hero-in{padding-top:78px;}
   }
 
@@ -358,6 +370,67 @@
     .aura-landing .foot-cols{grid-template-columns:repeat(3,1fr);}
   }
 
+  /* ============================================================
+     MEJORAS DE CONVERSION — contra entrega, sticky, WhatsApp, FAQ
+     ============================================================ */
+  /* Microcopy de contra entrega bajo los CTAs */
+  .aura-landing .cod-note{display:flex;align-items:center;gap:9px;justify-content:center;font-size:.9rem;color:var(--aura-muted);margin:14px 0 0;font-weight:400;line-height:1.35;}
+  .aura-landing .cod-note svg{width:20px;height:20px;color:var(--aura-accent);flex:none;}
+  .aura-landing .cod-note strong{color:inherit;font-weight:700;}
+  .aura-landing .cod-note--hero{justify-content:flex-start;color:#fff;margin-top:18px;text-shadow:0 1px 12px rgba(0,0,0,.4);}
+  .aura-landing .cod-note--hero strong{color:#fff;}
+  .aura-landing .price-card .cod-note{color:rgba(250,248,243,.92);position:relative;}
+  .aura-landing .price-card .cod-note strong{color:#fff;}
+  /* CTAs largos: permitir wrap para que no se desborden en movil */
+  .aura-landing .price-card .btn,
+  .aura-landing .mobile-menu .btn{white-space:normal;line-height:1.2;text-align:center;}
+  /* Badge de contra entrega destacado */
+  .aura-landing .badge--cod{background:rgba(255,90,31,.16);border-color:rgba(255,90,31,.5);color:#fff;font-weight:600;}
+
+  /* Barra sticky de compra (solo movil) */
+  .aura-landing .sticky-buy{
+    position:fixed;left:0;right:0;bottom:0;z-index:70;
+    display:flex;align-items:center;gap:14px;
+    padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+    background:rgba(245,243,238,.97);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-top:1px solid var(--aura-line);
+    transform:translateY(120%);transition:transform .4s var(--aura-ease);
+    box-shadow:0 -10px 30px -16px rgba(8,8,8,.45);
+  }
+  .aura-landing .sticky-buy.show{transform:translateY(0);}
+  .aura-landing .sticky-buy .sb-info{display:flex;flex-direction:column;line-height:1.05;flex:none;}
+  .aura-landing .sticky-buy .sb-price{font-family:'Anton',sans-serif;font-size:1.5rem;color:var(--aura-ink);}
+  .aura-landing .sticky-buy .sb-cod{font-size:.66rem;color:var(--aura-accent);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:2px;}
+  .aura-landing .sticky-buy .btn{flex:1;justify-content:center;padding:14px 16px;white-space:normal;line-height:1.15;font-size:.96rem;}
+  @media(min-width:880px){.aura-landing .sticky-buy{display:none !important;}}
+  @media (prefers-reduced-motion:reduce){.aura-landing .sticky-buy{transition:none;}}
+
+  /* Boton flotante de WhatsApp */
+  .aura-landing .wa-float{
+    position:fixed;right:16px;bottom:86px;z-index:69;
+    width:56px;height:56px;border-radius:50%;
+    display:grid;place-items:center;background:#25D366;color:#fff;
+    box-shadow:0 10px 30px -8px rgba(37,211,102,.7);
+    transition:transform .3s var(--aura-ease);
+  }
+  .aura-landing .wa-float:hover{transform:scale(1.07);}
+  .aura-landing .wa-float svg{width:30px;height:30px;}
+  @media(min-width:880px){.aura-landing .wa-float{bottom:24px;}}
+
+  /* FAQ */
+  .aura-landing .faq{background:var(--aura-bg);}
+  .aura-landing .faq-list{max-width:760px;margin:46px auto 0;display:grid;gap:12px;}
+  .aura-landing .faq-item{background:var(--aura-cloud);border:1px solid var(--aura-line);border-radius:16px;overflow:hidden;}
+  .aura-landing .faq-item summary{list-style:none;cursor:pointer;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:600;font-size:1.02rem;color:var(--aura-ink);}
+  .aura-landing .faq-item summary::-webkit-details-marker{display:none;}
+  .aura-landing .faq-item summary::after{content:"+";font-family:'Anton',sans-serif;font-size:1.5rem;color:var(--aura-accent);transition:transform .3s var(--aura-ease);line-height:1;flex:none;}
+  .aura-landing .faq-item[open] summary::after{transform:rotate(45deg);}
+  .aura-landing .faq-item .faq-a{padding:0 24px 20px;color:var(--aura-muted);font-weight:300;line-height:1.6;font-size:.96rem;}
+  .aura-landing .faq-item .faq-a strong{color:var(--aura-ink);font-weight:600;}
+
+  /* Que la barra sticky no tape el footer en movil */
+  @media(max-width:879px){.aura-landing .aura-foot{padding-bottom:96px;}}
+
 </style>
 
 <div class="aura-landing" id="aura-landing">
@@ -374,15 +447,7 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
-        {%- if aura_variant_id != '' -%}
-        <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
-          <input type="hidden" name="id" value="{{ aura_variant_id }}">
-          <input type="hidden" name="quantity" value="1">
-          <button type="submit" name="add" class="btn btn-primary nav-cta">Comprar</button>
-        </form>
-        {%- else -%}
-        <a href="{{ buy_url }}" class="btn btn-primary nav-cta">Comprar</a>
-        {%- endif -%}
+        <a href="{{ product_url }}" class="btn btn-primary nav-cta">Pedir ahora</a>
         <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
           <span></span><span></span><span></span>
         </button>
@@ -395,15 +460,7 @@
     <a href="#aura-precio">Precio</a>
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
-    {%- if aura_variant_id != '' -%}
-    <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
-      <input type="hidden" name="id" value="{{ aura_variant_id }}">
-      <input type="hidden" name="quantity" value="1">
-      <button type="submit" name="add" class="btn btn-primary">Comprar ahora</button>
-    </form>
-    {%- else -%}
-    <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora</a>
-    {%- endif -%}
+    <a href="{{ product_url }}" class="btn btn-primary">Pedir — pago contra entrega</a>
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
@@ -452,17 +509,10 @@
             <span>Quedan <strong>{{ stock_left }}</strong> unidades a este precio</span>
           </div>
           <div class="hero-actions">
-            {%- if aura_variant_id != '' -%}
-            <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
-              <input type="hidden" name="id" value="{{ aura_variant_id }}">
-              <input type="hidden" name="quantity" value="1">
-              <button type="submit" name="add" class="btn btn-primary">Comprar ahora <span class="arr">→</span></button>
-            </form>
-            {%- else -%}
-            <a href="{{ buy_url }}" class="btn btn-primary">Comprar ahora <span class="arr">→</span></a>
-            {%- endif -%}
+            <a href="{{ product_url }}" class="btn btn-primary">Pedir ahora <span class="arr">→</span></a>
             <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
           </div>
+          <p class="cod-note cod-note--hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Pago contra entrega · <strong>paga cuando lo recibas</strong></p>
           <div class="social-proof">
             <span class="stars" aria-hidden="true">★★★★★</span>
             <span class="sp-text"><strong>4.9/5</strong> · <strong>+25.000</strong> vendidos</span>
@@ -591,6 +641,7 @@
         <div class="spec reveal" data-d="3"><div class="n">IPX5</div><div class="l">resistencia al sudor y a la lluvia ligera.</div></div>
       </div>
       <div class="badges">
+        <span class="badge badge--cod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Pago contra entrega</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg> Garantía 30 días</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Envío gratis</span>
         <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Pago seguro</span>
@@ -644,16 +695,40 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Garantía y devolución a 30 días</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 2 años de soporte técnico</li>
         </ul>
-        {%- if aura_variant_id != '' -%}
-        <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-product-handle="audifonos">
-          <input type="hidden" name="id" value="{{ aura_variant_id }}">
-          <input type="hidden" name="quantity" value="1">
-          <button type="submit" name="add" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></button>
-        </form>
-        {%- else -%}
-        <a href="{{ buy_url }}" class="btn btn-primary">Lo quiero ahora <span class="arr">→</span></a>
-        {%- endif -%}
-        <p class="price-fine">Pago seguro · Disponibilidad limitada de lanzamiento</p>
+        <a href="{{ product_url }}" class="btn btn-primary">Lo quiero — pago contra entrega <span class="arr">→</span></a>
+        <p class="cod-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Sin pagar nada por adelantado. <strong>Pagas en efectivo al recibir.</strong></p>
+        <p class="price-fine">Garantía 30 días · Envío gratis a todo el país</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq pad" id="aura-faq">
+    <div class="wrap">
+      <div class="section-head" style="text-align:center;max-width:none;margin:0 auto;">
+        <h2 class="reveal" data-d="1">Preguntas frecuentes</h2>
+      </div>
+      <div class="faq-list reveal" data-d="1">
+        <details class="faq-item" open>
+          <summary>¿Cómo pago? ¿Tengo que pagar por adelantado?</summary>
+          <div class="faq-a">No pagas nada por adelantado. Es <strong>pago contra entrega</strong>: pagas en efectivo al transportador cuando recibes los audífonos en la puerta de tu casa.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Cuánto tarda en llegar?</summary>
+          <div class="faq-a">El envío es <strong>gratis a todo el país</strong> y normalmente llega en <strong>{{ shipping_time }}</strong>, según tu ciudad.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Puedo devolverlo si no me gusta?</summary>
+          <div class="faq-a">Sí. Tienes <strong>30 días de garantía</strong> y devolución. Si algo no está bien, te respondemos y lo resolvemos.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Son originales y tienen garantía?</summary>
+          <div class="faq-a">Sí. Cada AURA pasa por control de calidad e incluye <strong>2 años de soporte</strong> y garantía de 30 días.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Hacen envíos a toda Colombia?</summary>
+          <div class="faq-a">Sí, enviamos a <strong>todo el país</strong> con pago contra entrega. Si tienes dudas sobre tu ciudad, escríbenos antes de pedir.</div>
+        </details>
       </div>
     </div>
   </section>
@@ -666,10 +741,9 @@
           <span class="logo">AURA<span style="color:var(--aura-accent)">.</span></span>
           <p>Audífonos premium diseñados para que el mundo se calle y la música hable. Hechos para durar.</p>
           <div class="socials">
-            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
-            <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.3 2.1 1.6 3.7 3.7 4v2.6c-1.4 0-2.7-.4-3.7-1.1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 1.9 2.6V3H16z"/></svg></a>
-            <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M11 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></a>
-            <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 3h2.8l-6.1 7 7.2 11h-5.6l-4.4-6.4L6 21H3.2l6.6-7.5L3 3h5.7l4 5.9L17.5 3zm-1 16.2h1.5L8 4.7H6.4l10.1 14.5z"/></svg></a>
+            {%- if section.settings.social_instagram != blank -%}<a href="{{ section.settings.social_instagram }}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>{%- endif -%}
+            {%- if section.settings.social_tiktok != blank -%}<a href="{{ section.settings.social_tiktok }}" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 3c.3 2.1 1.6 3.7 3.7 4v2.6c-1.4 0-2.7-.4-3.7-1.1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 1.9 2.6V3H16z"/></svg></a>{%- endif -%}
+            {%- if section.settings.social_youtube != blank -%}<a href="{{ section.settings.social_youtube }}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M11 9.5l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg></a>{%- endif -%}
           </div>
         </div>
         <div class="foot-cols">
@@ -682,17 +756,22 @@
           </div>
           <div class="foot-col">
             <h4>Ayuda</h4>
-            <a href="#">Envíos y entregas</a>
-            <a href="#">Devoluciones</a>
-            <a href="#">Garantía</a>
-            <a href="#">Contacto</a>
+            <a href="{% if shop.shipping_policy.url != blank %}{{ shop.shipping_policy.url }}{% else %}#aura-faq{% endif %}">Envíos y entregas</a>
+            <a href="{% if shop.refund_policy.url != blank %}{{ shop.refund_policy.url }}{% else %}#aura-faq{% endif %}">Devoluciones y garantía</a>
+            <a href="#aura-faq">Preguntas frecuentes</a>
+            {%- if wa_number != blank -%}
+            <a href="https://wa.me/{{ wa_number }}" target="_blank" rel="noopener">Contacto (WhatsApp)</a>
+            {%- else -%}
+            <a href="#aura-faq">Contacto</a>
+            {%- endif -%}
           </div>
           <div class="foot-col">
-            <h4>Compañía</h4>
-            <a href="#">Sobre AURA</a>
-            <a href="#">Sostenibilidad</a>
-            <a href="#">Términos</a>
-            <a href="#">Privacidad</a>
+            <h4>Legal</h4>
+            {%- if shop.privacy_policy.url != blank -%}<a href="{{ shop.privacy_policy.url }}">Política de privacidad</a>{%- endif -%}
+            {%- if shop.refund_policy.url != blank -%}<a href="{{ shop.refund_policy.url }}">Política de devoluciones</a>{%- endif -%}
+            {%- if shop.terms_of_service.url != blank -%}<a href="{{ shop.terms_of_service.url }}">Términos y condiciones</a>{%- endif -%}
+            {%- if shop.shipping_policy.url != blank -%}<a href="{{ shop.shipping_policy.url }}">Política de envíos</a>{%- endif -%}
+            {%- unless shop.privacy_policy.url != blank or shop.terms_of_service.url != blank -%}<a href="#aura-faq">Información legal</a>{%- endunless -%}
           </div>
         </div>
       </div>
@@ -703,6 +782,21 @@
     </div>
   </footer>
 
+  <!-- Barra sticky de compra (movil) -->
+  <a class="sticky-buy" id="aura-stickyBuy" href="{{ product_url }}">
+    <span class="sb-info">
+      <span class="sb-price">{{ price_now }}</span>
+      <span class="sb-cod">Pago contra entrega</span>
+    </span>
+    <span class="btn btn-primary">Pedir ahora <span class="arr">→</span></span>
+  </a>
+
+  {%- if wa_number != blank -%}
+  <!-- WhatsApp flotante -->
+  <a class="wa-float" href="https://wa.me/{{ wa_number }}?text={{ wa_message | url_encode }}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.02zM12.04 20.15h-.01a8.23 8.23 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24a8.2 8.2 0 0 1 5.83 2.42 8.2 8.2 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43-.14-.01-.31-.01-.48-.01a.92.92 0 0 0-.66.31c-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.57.12.17 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+  </a>
+  {%- endif -%}
 
 </div>
 
@@ -884,41 +978,26 @@
     setTimeout(onScroll, 100);
   }
 
-  /* Buy flow: AJAX add to cart -> redirect straight to Shopify checkout.
-     Releasit appears in the checkout as a payment method (Cash on Delivery).
-     HTML form fallback has return_to=/checkout for no-JS browsers. */
-  var buyForms = root.querySelectorAll('form.aura-buy-form');
-  buyForms.forEach(function(form){
-    form.addEventListener('submit', function(e){
-      var idInput = form.querySelector('input[name="id"]');
-      if(!idInput || !idInput.value) return; /* no variant -> let HTML submit handle */
-      e.preventDefault();
-      var btn = form.querySelector('button[type="submit"]');
-      var originalText = btn ? btn.innerHTML : '';
-      if(btn){
-        btn.disabled = true;
-        btn.style.pointerEvents = 'none';
-        btn.innerHTML = 'Cargando…';
-      }
-      var fd = new FormData(form);
-      fetch('/cart/add.js', {
-        method: 'POST',
-        body: fd,
-        headers: {'Accept':'application/json'}
-      }).then(function(r){
-        if(!r.ok) throw new Error('add failed');
-        window.location.href = '/checkout';
-      }).catch(function(){
-        /* fall back to normal submit which has return_to=/checkout in action URL */
-        if(btn){
-          btn.disabled = false;
-          btn.style.pointerEvents = '';
-          btn.innerHTML = originalText;
-        }
-        form.submit();
-      });
-    });
-  });
+  /* Barra sticky de compra (movil): aparece tras el hero y se oculta sobre la seccion de precio
+     para no duplicar el CTA. Los botones ya enlazan directo a la pagina del producto (Releasit COD). */
+  var sticky = document.getElementById('aura-stickyBuy');
+  if(sticky){
+    var nearBuy = false;
+    var priceZone = root.querySelector('#aura-precio');
+    var updateSticky = function(){
+      var past = window.scrollY > (window.innerHeight * 0.7);
+      if(past && !nearBuy){ sticky.classList.add('show'); }
+      else{ sticky.classList.remove('show'); }
+    };
+    if('IntersectionObserver' in window && priceZone){
+      var sbio = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ nearBuy = e.isIntersecting; updateSticky(); });
+      }, {rootMargin:'0px 0px -35% 0px'});
+      sbio.observe(priceZone);
+    }
+    window.addEventListener('scroll', updateSticky, {passive:true});
+    updateSticky();
+  }
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
@@ -951,8 +1030,8 @@
     {
       "type": "url",
       "id": "checkout_url",
-      "label": "URL del botón Comprar",
-      "info": "Cuando crees el producto en Shopify, pega aquí el link de pago / checkout. Por defecto hace scroll a la sección Precio."
+      "label": "URL de los botones (opcional)",
+      "info": "Por defecto los botones llevan a la pagina del producto, donde aparece el formulario de pago contra entrega (Releasit). Deja esto vacio salvo que quieras forzar otra URL."
     },
     {
       "type": "header",
@@ -985,6 +1064,51 @@
       "id": "stock_left",
       "label": "Unidades restantes",
       "default": "17"
+    },
+    {
+      "type": "header",
+      "content": "Envio / FAQ"
+    },
+    {
+      "type": "text",
+      "id": "shipping_time",
+      "label": "Tiempo de entrega (texto)",
+      "default": "2 a 5 dias habiles"
+    },
+    {
+      "type": "header",
+      "content": "WhatsApp (pago contra entrega)"
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_number",
+      "label": "Numero de WhatsApp",
+      "info": "Solo numeros, con indicativo de pais y sin signos ni espacios. Ej: 573001234567. Si lo dejas vacio, no se muestra el boton flotante."
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_message",
+      "label": "Mensaje prellenado de WhatsApp",
+      "default": "Hola, quiero pedir los audifonos AURA con pago contra entrega"
+    },
+    {
+      "type": "header",
+      "content": "Redes sociales (footer)"
+    },
+    {
+      "type": "url",
+      "id": "social_instagram",
+      "label": "Instagram (URL)"
+    },
+    {
+      "type": "url",
+      "id": "social_tiktok",
+      "label": "TikTok (URL)"
+    },
+    {
+      "type": "url",
+      "id": "social_youtube",
+      "label": "YouTube (URL)"
     }
   ],
   "presets": [
