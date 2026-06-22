@@ -438,6 +438,10 @@
   .aura-landing section[id]{scroll-margin-top:84px;}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
 
+  /* Resaltado de ENVIO GRATIS en la tarjeta de precio */
+  .aura-landing .price-card .free-ship{display:inline-flex;align-items:center;gap:9px;margin:14px auto 0;padding:9px 18px;border-radius:100px;background:rgba(255,90,31,.16);border:1px solid rgba(255,90,31,.5);color:#fff;font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;position:relative;}
+  .aura-landing .price-card .free-ship svg{width:18px;height:18px;color:var(--aura-accent);flex:none;}
+
 </style>
 
 <div class="aura-landing" id="aura-landing">
@@ -519,7 +523,7 @@
             <a href="#aura-precio" class="btn btn-primary">Pedir ahora <span class="arr">→</span></a>
             <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
           </div>
-          <p class="cod-note cod-note--hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Pago contra entrega · <strong>paga cuando lo recibas</strong></p>
+          <p class="cod-note cod-note--hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Envío <strong>GRATIS</strong> · Pago contra entrega — paga al recibir</p>
           <div class="social-proof">
             <span class="stars" aria-hidden="true">★★★★★</span>
             <span class="sp-text"><strong>4.9/5</strong> · <strong>+25.000</strong> vendidos</span>
@@ -696,6 +700,7 @@
         <span class="ribbon">Últimas unidades · ahorro 65%</span>
         <div class="price-now">{{ price_now }}</div>
         <div><span class="price-was">{{ price_was }}</span><span class="save">{{ price_save }}</span></div>
+        <div class="free-ship"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Envío GRATIS a todo Colombia</div>
         <ul class="price-list">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Audífonos AURA + estuche con pantalla</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Envío gratis a todo el país</li>
