@@ -91,6 +91,10 @@
     .aura-landing .reveal{opacity:1 !important;transform:none !important;transition:none;}
   }
 
+  /* Formularios de compra: se comportan como su boton hijo, sin romper flex/inline layouts */
+  .aura-landing .aura-buy-form{display:contents;margin:0;padding:0;}
+  .aura-landing .aura-buy-form button.btn{font:inherit;}
+
   /* Buttons */
   .aura-landing .btn{
     --pad:15px 26px;
@@ -431,10 +435,8 @@
   /* Que la barra sticky no tape el footer en movil */
   @media(max-width:879px){.aura-landing .aura-foot{padding-bottom:96px;}}
 
-  /* Slot del boton COD de Releasit (en la tarjeta de precio) + scroll suave a el */
+  /* Slot del boton de compra en la tarjeta de precio + scroll suave a el */
   .aura-landing .aura-cod-slot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
-  .aura-landing .aura-cod-slot > .btn{width:100%;max-width:330px;margin-left:auto;margin-right:auto;}
-  .aura-landing .aura-cod-slot #_rsi-cod-form-embed-custom-hook{width:100%;}
   html{scroll-behavior:smooth;}
   .aura-landing section[id]{scroll-margin-top:84px;}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -459,7 +461,15 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
-        <a href="#aura-precio" class="btn btn-primary nav-cta">Pedir ahora</a>
+        {%- if aura_product and aura_product.first_available_variant -%}
+        <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-aura-buy data-product-handle="audifonos">
+          <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" name="add" class="btn btn-primary nav-cta">Pedir ahora</button>
+        </form>
+        {%- else -%}
+        <a href="{{ product_url }}" class="btn btn-primary nav-cta">Pedir ahora</a>
+        {%- endif -%}
         <button class="burger" id="aura-burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="aura-mobileMenu">
           <span></span><span></span><span></span>
         </button>
@@ -472,7 +482,15 @@
     <a href="#aura-precio">Precio</a>
     <a href="#aura-opiniones">Opiniones</a>
     <a href="#aura-ayuda">Ayuda</a>
-    <a href="#aura-precio" class="btn btn-primary">Pedir — pago contra entrega</a>
+    {%- if aura_product and aura_product.first_available_variant -%}
+    <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-aura-buy data-product-handle="audifonos">
+      <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" name="add" class="btn btn-primary">Pedir ahora</button>
+    </form>
+    {%- else -%}
+    <a href="{{ product_url }}" class="btn btn-primary">Pedir ahora</a>
+    {%- endif -%}
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
@@ -521,7 +539,15 @@
             <span>Quedan <strong>{{ stock_left }}</strong> unidades a este precio</span>
           </div>
           <div class="hero-actions">
-            <a href="#aura-precio" class="btn btn-primary">Pedir ahora <span class="arr">→</span></a>
+            {%- if aura_product and aura_product.first_available_variant -%}
+            <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-aura-buy data-product-handle="audifonos">
+              <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" name="add" class="btn btn-primary">Pedir ahora <span class="arr">→</span></button>
+            </form>
+            {%- else -%}
+            <a href="{{ product_url }}" class="btn btn-primary">Pedir ahora <span class="arr">→</span></a>
+            {%- endif -%}
             <a href="#aura-funciones" class="btn btn-light">Ver funciones</a>
           </div>
           <p class="cod-note cod-note--hero"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Envío <strong>GRATIS</strong> · Pago contra entrega — paga al recibir</p>
@@ -710,13 +736,13 @@
         </ul>
         <div class="aura-cod-slot" id="aura-cod">
           {%- if aura_product and aura_product.first_available_variant -%}
-          {%- comment -%} Hook oficial de Releasit: incrusta el formulario COD aqui mismo (sin redirigir).
-             Releasit lee el producto/variante de estos inputs hermanos. Requiere el form en modo "Embedded" en Releasit. {%- endcomment -%}
-          <input type="hidden" name="product-id" value="{{ aura_product.id }}">
-          <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
-          <div id="_rsi-cod-form-embed-custom-hook" data-product-id="{{ aura_product.id }}" data-variant-id="{{ aura_product.first_available_variant.id }}"></div>
+          <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-aura-buy data-product-handle="audifonos">
+            <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" name="add" class="btn btn-primary">Pedir ahora <span class="arr">→</span></button>
+          </form>
           {%- else -%}
-          <a href="{{ product_url }}" class="btn btn-primary">Pedir contra entrega <span class="arr">→</span></a>
+          <a href="{{ product_url }}" class="btn btn-primary">Pedir ahora <span class="arr">→</span></a>
           {%- endif -%}
         </div>
         <p class="cod-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> Sin pagar nada por adelantado. <strong>Pagas en efectivo al recibir.</strong></p>
@@ -806,13 +832,25 @@
   </footer>
 
   <!-- Barra sticky de compra (movil) -->
-  <a class="sticky-buy" id="aura-stickyBuy" href="#aura-precio">
+  {%- if aura_product and aura_product.first_available_variant -%}
+  <form class="sticky-buy" id="aura-stickyBuy" action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" data-aura-buy data-product-handle="audifonos">
+    <span class="sb-info">
+      <span class="sb-price">{{ price_now }}</span>
+      <span class="sb-cod">Pago contra entrega</span>
+    </span>
+    <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
+    <input type="hidden" name="quantity" value="1">
+    <button type="submit" name="add" class="btn btn-primary">Pedir ahora <span class="arr">→</span></button>
+  </form>
+  {%- else -%}
+  <a class="sticky-buy" id="aura-stickyBuy" href="{{ product_url }}">
     <span class="sb-info">
       <span class="sb-price">{{ price_now }}</span>
       <span class="sb-cod">Pago contra entrega</span>
     </span>
     <span class="btn btn-primary">Pedir ahora <span class="arr">→</span></span>
   </a>
+  {%- endif -%}
 
   {%- if wa_number != blank -%}
   <!-- WhatsApp flotante -->
@@ -1002,7 +1040,7 @@
   }
 
   /* Barra sticky de compra (movil): aparece tras el hero y se oculta sobre la seccion de precio
-     para no duplicar el CTA. Los botones ya enlazan directo a la pagina del producto (Releasit COD). */
+     para no duplicar el CTA. Todos los botones agregan al carrito y van directo al checkout de Shopify. */
   var sticky = document.getElementById('aura-stickyBuy');
   if(sticky){
     var nearBuy = false;
@@ -1021,6 +1059,40 @@
     window.addEventListener('scroll', updateSticky, {passive:true});
     updateSticky();
   }
+
+  /* Flujo de compra: agrega al carrito por AJAX y redirige directo al checkout de Shopify.
+     El fallback de <form action="/cart/add?return_to=/checkout"> cubre navegadores sin JS. */
+  var buyForms = root.querySelectorAll('[data-aura-buy]');
+  buyForms.forEach(function(form){
+    form.addEventListener('submit', function(e){
+      var idInput = form.querySelector('input[name="id"]');
+      if(!idInput || !idInput.value) return;
+      e.preventDefault();
+      var btn = form.querySelector('button[type="submit"]');
+      var originalText = btn ? btn.innerHTML : '';
+      if(btn){
+        btn.disabled = true;
+        btn.style.pointerEvents = 'none';
+        btn.innerHTML = 'Cargando…';
+      }
+      var fd = new FormData(form);
+      fetch('/cart/add.js', {
+        method: 'POST',
+        body: fd,
+        headers: {'Accept':'application/json'}
+      }).then(function(r){
+        if(!r.ok) throw new Error('add failed');
+        window.location.href = '/checkout';
+      }).catch(function(){
+        if(btn){
+          btn.disabled = false;
+          btn.style.pointerEvents = '';
+          btn.innerHTML = originalText;
+        }
+        form.submit();
+      });
+    });
+  });
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
   var funcVideo = document.getElementById('aura-funcVideo');
