@@ -447,6 +447,45 @@
   .aura-landing .price-card .free-ship{display:inline-flex;align-items:center;gap:9px;margin:14px auto 0;padding:9px 18px;border-radius:100px;background:rgba(255,90,31,.16);border:1px solid rgba(255,90,31,.5);color:#fff;font-weight:700;font-size:.9rem;letter-spacing:.03em;text-transform:uppercase;position:relative;}
   .aura-landing .price-card .free-ship svg{width:18px;height:18px;color:var(--aura-accent);flex:none;}
 
+  /* Carrito desplegable (se abre al agregar al carrito) */
+  .aura-landing .cart-overlay{
+    position:fixed;inset:0;z-index:90;background:rgba(8,8,8,.5);
+    opacity:0;pointer-events:none;transition:opacity .35s var(--aura-ease);
+  }
+  .aura-landing .cart-overlay.open{opacity:1;pointer-events:auto;}
+  .aura-landing .cart-drawer{
+    position:fixed;top:0;right:0;bottom:0;z-index:91;
+    width:min(420px,100%);background:var(--aura-bg);color:var(--aura-ink);
+    display:flex;flex-direction:column;
+    transform:translateX(100%);transition:transform .4s var(--aura-ease);
+    box-shadow:-20px 0 50px -20px rgba(8,8,8,.4);
+  }
+  .aura-landing .cart-drawer.open{transform:translateX(0);}
+  .aura-landing .cart-drawer__head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 22px;border-bottom:1px solid var(--aura-line);flex:none;
+  }
+  .aura-landing .cart-drawer__head h3{font-size:1.3rem;}
+  .aura-landing .cart-drawer__head h3 .o{color:var(--aura-accent);}
+  .aura-landing .cart-drawer__close{background:none;border:0;cursor:pointer;color:var(--aura-ink);padding:6px;line-height:1;}
+  .aura-landing .cart-drawer__close svg{width:22px;height:22px;}
+  .aura-landing .cart-drawer__body{flex:1;overflow-y:auto;padding:20px 22px;}
+  .aura-landing .cart-drawer__item{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--aura-line);}
+  .aura-landing .cart-drawer__item img{width:72px;height:72px;border-radius:14px;object-fit:cover;background:var(--aura-cloud);flex:none;}
+  .aura-landing .cart-drawer__item-info{flex:1;min-width:0;}
+  .aura-landing .cart-drawer__item-title{font-family:'Inter';font-weight:600;font-size:.96rem;line-height:1.3;}
+  .aura-landing .cart-drawer__item-qty{color:var(--aura-muted);font-size:.86rem;margin-top:4px;}
+  .aura-landing .cart-drawer__item-price{font-family:'Anton',sans-serif;font-size:1.05rem;flex:none;}
+  .aura-landing .cart-drawer__empty{color:var(--aura-muted);text-align:center;padding:40px 0;font-size:.96rem;}
+  .aura-landing .cart-drawer__foot{flex:none;padding:20px 22px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--aura-line);background:var(--aura-cloud);}
+  .aura-landing .cart-drawer__total{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-family:'Inter';font-weight:600;font-size:1.02rem;}
+  .aura-landing .cart-drawer__total span:last-child{font-family:'Anton',sans-serif;font-size:1.4rem;}
+  .aura-landing .cart-drawer__foot .btn{width:100%;justify-content:center;}
+  .aura-landing .cart-drawer .cod-note{margin-top:14px;}
+  @media (prefers-reduced-motion:reduce){
+    .aura-landing .cart-overlay,.aura-landing .cart-drawer{transition:none;}
+  }
+
 </style>
 
 <div class="aura-landing" id="aura-landing">
@@ -863,6 +902,25 @@
   </a>
   {%- endif -%}
 
+  <!-- Carrito desplegable -->
+  <div class="cart-overlay" id="auraCartOverlay"></div>
+  <aside class="cart-drawer" id="auraCartDrawer" role="dialog" aria-modal="true" aria-label="Carrito de compras" aria-hidden="true">
+    <div class="cart-drawer__head">
+      <h3>Tu <span class="o">carrito</span></h3>
+      <button class="cart-drawer__close" id="auraCartClose" aria-label="Cerrar carrito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="cart-drawer__body" id="auraCartBody">
+      <p class="cart-drawer__empty">Cargando…</p>
+    </div>
+    <div class="cart-drawer__foot">
+      <div class="cart-drawer__total"><span>Total</span><span id="auraCartTotal">$0</span></div>
+      <a href="/checkout" class="btn btn-primary">Ir a pagar <span class="arr">→</span></a>
+      <p class="cod-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> <strong>Pago contra entrega</strong> disponible en el checkout</p>
+    </div>
+  </aside>
+
 </div>
 
 <script>
@@ -1064,7 +1122,64 @@
     updateSticky();
   }
 
-  /* Flujo de compra: agrega al carrito por AJAX y redirige directo al checkout de Shopify.
+  /* Carrito desplegable: se abre al agregar, muestra que hay en el carrito y lleva a /checkout. */
+  var cartOverlay = document.getElementById('auraCartOverlay');
+  var cartDrawer = document.getElementById('auraCartDrawer');
+  var cartBody = document.getElementById('auraCartBody');
+  var cartTotal = document.getElementById('auraCartTotal');
+  var cartClose = document.getElementById('auraCartClose');
+
+  var formatMoney = function(cents){
+    return '$' + Math.round(cents / 100).toLocaleString('es-CO');
+  };
+
+  var closeAuraCart = function(){
+    if(!cartDrawer) return;
+    cartDrawer.classList.remove('open');
+    if(cartOverlay) cartOverlay.classList.remove('open');
+    cartDrawer.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  };
+
+  var renderAuraCart = function(cart){
+    if(!cartBody) return;
+    if(!cart.items || !cart.items.length){
+      cartBody.innerHTML = '<p class="cart-drawer__empty">Tu carrito está vacío.</p>';
+    } else {
+      cartBody.innerHTML = cart.items.map(function(item){
+        var img = item.image ? item.image.replace(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i, '_200x.$1$2') : '';
+        return '<div class="cart-drawer__item">' +
+          (img ? '<img src="' + img + '" alt="" loading="lazy">' : '') +
+          '<div class="cart-drawer__item-info">' +
+            '<div class="cart-drawer__item-title">' + item.product_title + '</div>' +
+            '<div class="cart-drawer__item-qty">Cantidad: ' + item.quantity + '</div>' +
+          '</div>' +
+          '<div class="cart-drawer__item-price">' + formatMoney(item.final_line_price) + '</div>' +
+        '</div>';
+      }).join('');
+    }
+    if(cartTotal) cartTotal.textContent = formatMoney(cart.total_price);
+  };
+
+  var openAuraCart = function(){
+    if(!cartDrawer) return Promise.resolve();
+    cartDrawer.classList.add('open');
+    if(cartOverlay) cartOverlay.classList.add('open');
+    cartDrawer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    return fetch('/cart.js', {headers:{'Accept':'application/json'}})
+      .then(function(r){ return r.json(); })
+      .then(renderAuraCart)
+      .catch(function(){
+        if(cartBody){ cartBody.innerHTML = '<p class="cart-drawer__empty">No se pudo cargar el carrito.</p>'; }
+      });
+  };
+
+  if(cartOverlay){ cartOverlay.addEventListener('click', closeAuraCart); }
+  if(cartClose){ cartClose.addEventListener('click', closeAuraCart); }
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeAuraCart(); });
+
+  /* Flujo de compra: agrega al carrito por AJAX y abre el carrito desplegable.
      El fallback de <form action="/cart/add?return_to=/checkout"> cubre navegadores sin JS. */
   var buyForms = root.querySelectorAll('[data-aura-buy]');
   buyForms.forEach(function(form){
@@ -1077,7 +1192,7 @@
       if(btn){
         btn.disabled = true;
         btn.style.pointerEvents = 'none';
-        btn.innerHTML = 'Cargando…';
+        btn.innerHTML = 'Agregando…';
       }
       var fd = new FormData(form);
       fetch('/cart/add.js', {
@@ -1086,13 +1201,14 @@
         headers: {'Accept':'application/json'}
       }).then(function(r){
         if(!r.ok) throw new Error('add failed');
-        window.location.href = '/checkout';
-      }).catch(function(){
+        return openAuraCart();
+      }).then(function(){
         if(btn){
           btn.disabled = false;
           btn.style.pointerEvents = '';
           btn.innerHTML = originalText;
         }
+      }).catch(function(){
         form.submit();
       });
     });
