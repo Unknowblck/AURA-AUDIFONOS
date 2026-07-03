@@ -143,6 +143,7 @@
   .aura-landing .nav-links a:hover::after{width:100%;}
   .aura-landing .nav-right{display:flex;align-items:center;gap:14px;}
   .aura-landing .nav-cta{display:none;}
+  .aura-landing .nav-cod{display:none;font-size:.76rem;font-weight:500;color:var(--aura-muted);white-space:nowrap;}
   .aura-landing .burger{display:inline-flex;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px;}
   .aura-landing .burger span{width:22px;height:2px;background:var(--aura-ink);transition:.3s var(--aura-ease);}
   .aura-landing .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
@@ -160,6 +161,7 @@
   @media(min-width:880px){
     .aura-landing .nav-links{display:flex;}
     .aura-landing .nav-cta{display:inline-flex;}
+    .aura-landing .nav-cod{display:inline-flex;}
     .aura-landing .burger{display:none;}
   }
 
@@ -461,6 +463,7 @@
         <a href="#aura-ayuda">Ayuda</a>
       </nav>
       <div class="nav-right">
+        <span class="nav-cod">Pago contra entrega</span>
         {%- if aura_product and aura_product.first_available_variant -%}
         <form action="/cart/add?return_to=/checkout" method="post" enctype="multipart/form-data" class="aura-buy-form" data-aura-buy data-product-handle="audifonos">
           <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
@@ -491,6 +494,7 @@
     {%- else -%}
     <a href="{{ product_url }}" class="btn btn-primary">Pedir ahora</a>
     {%- endif -%}
+    <p class="cod-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg> <strong>Pago contra entrega</strong> — paga al recibir</p>
   </div>
 
   <!-- HERO — scroll-driven frame sequence -->
