@@ -435,7 +435,6 @@
   .aura-landing .aura-cod-slot{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;}
   .aura-landing .aura-cod-slot > .btn{width:100%;max-width:330px;margin-left:auto;margin-right:auto;}
   .aura-landing .aura-cod-slot #_rsi-cod-form-embed-custom-hook{width:100%;}
-  .aura-landing .aura-cod-fallback{display:none;}
   html{scroll-behavior:smooth;}
   .aura-landing section[id]{scroll-margin-top:84px;}
   @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
@@ -716,7 +715,6 @@
           <input type="hidden" name="product-id" value="{{ aura_product.id }}">
           <input type="hidden" name="id" value="{{ aura_product.first_available_variant.id }}">
           <div id="_rsi-cod-form-embed-custom-hook" data-product-id="{{ aura_product.id }}" data-variant-id="{{ aura_product.first_available_variant.id }}"></div>
-          <a href="{{ product_url }}" class="btn btn-primary aura-cod-fallback">Pedir contra entrega <span class="arr">→</span></a>
           {%- else -%}
           <a href="{{ product_url }}" class="btn btn-primary">Pedir contra entrega <span class="arr">→</span></a>
           {%- endif -%}
@@ -1022,14 +1020,6 @@
     }
     window.addEventListener('scroll', updateSticky, {passive:true});
     updateSticky();
-  }
-
-  /* Respaldo: si Releasit no incrusta el formulario COD, mostramos el enlace de respaldo */
-  var codHook = document.getElementById('_rsi-cod-form-embed-custom-hook');
-  var codFallback = root.querySelector('.aura-cod-fallback');
-  if(codFallback){
-    if(!codHook){ codFallback.style.display = 'inline-flex'; }
-    else { setTimeout(function(){ if(codHook.children.length === 0){ codFallback.style.display = 'inline-flex'; } }, 3500); }
   }
 
   /* Defer func video load until visible (saves 1.7MB on initial mobile load) */
